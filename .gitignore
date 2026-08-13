@@ -41,8 +41,15 @@ logs/
 *.onnx
 
 # Local data
-data/
+data/*
+!data/raw/
+data/raw/*
+!data/raw/*.dvc
 datasets/
+
+
+
+
 
 # Model outputs
 models/
