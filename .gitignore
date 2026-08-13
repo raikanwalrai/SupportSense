@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# ML artifacts
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Local data
+data/
+datasets/
+
+# Model outputs
+models/
+checkpoints/
+
+# DVC local cache
+.dvc/cache/
+
+# Temporary files
+tmp/
+temp/
