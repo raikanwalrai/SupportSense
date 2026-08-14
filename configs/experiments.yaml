@@ -1,0 +1,22 @@
+experiment:
+  name: baseline_tfidf_logistic_regression
+  random_state: 42
+  primary_metric: macro_f1
+
+data:
+  train_path: data/processed/train.csv
+  validation_path: data/processed/validation.csv
+
+features:
+  type: tfidf
+  ngram_range:
+    - 1
+    - 2
+  min_df: 2
+  max_df: 0.95
+  sublinear_tf: true
+
+model:
+  type: logistic_regression
+  max_iter: 1000
+  random_state: 42
