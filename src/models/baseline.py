@@ -21,15 +21,6 @@ from src.features.tfidf import (
 TRAIN_PATH = Path("data/processed/train.csv")
 VALIDATION_PATH = Path("data/processed/validation.csv")
 
-
-#def create_baseline_model() -> LogisticRegression:
-#    """Create the SupportSense Logistic Regression baseline."""
-#
-#    return LogisticRegression(
-#        max_iter=1000,
-#        random_state=42,
-#    )
-
 def create_baseline_model(
     config: dict[str, Any] | None = None,
 ) -> LogisticRegression:
@@ -55,45 +46,17 @@ def create_baseline_model(
         random_state=model_config["random_state"],
     )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def train_baseline(
     X_train,
     y_train,
+    config: dict[str, Any] | None = None,
 ) -> LogisticRegression:
     """Train the Logistic Regression baseline."""
 
-    model = create_baseline_model()
+    model = create_baseline_model(config)
     model.fit(X_train, y_train)
 
     return model
-
 
 def evaluate_model(
     model: LogisticRegression,
@@ -130,13 +93,14 @@ def evaluate_model(
 def run_baseline(
     train_path: str | Path = TRAIN_PATH,
     validation_path: str | Path = VALIDATION_PATH,
+    config: dict[str, Any] | None = None,
 ) -> dict:
     """Run the complete TF-IDF + Logistic Regression baseline."""
 
     train_df = load_split(train_path)
     validation_df = load_split(validation_path)
 
-    vectorizer = create_tfidf_vectorizer()
+    vectorizer = create_tfidf_vectorizer(config)
 
     X_train = fit_tfidf(
         vectorizer,
