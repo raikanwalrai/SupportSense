@@ -108,6 +108,8 @@ def prepare_train_validation(
 def print_summary(
     train_df: pd.DataFrame,
     validation_df: pd.DataFrame,
+    validation_size: float,
+    random_state: int,
 ) -> None:
     """Print a summary of the generated splits."""
 
@@ -116,8 +118,8 @@ def print_summary(
     print("SupportSense Train/Validation Split")
     print("=" * 70)
 
-    print(f"Random state    : {RANDOM_STATE}")
-    print(f"Validation size : {VALIDATION_SIZE:.0%}")
+    print(f"Random state    : {random_state}")
+    print(f"Validation size : {validation_size:.0%}")
 
     print()
     print("## Records")
@@ -148,10 +150,52 @@ def print_summary(
 
 
 if __name__ == "__main__":
-    train_df, validation_df = prepare_train_validation(
-        input_path="data/raw/train.csv",
-        train_output="data/processed/train.csv",
-        validation_output="data/processed/validation.csv",
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Create a stratified train/validation split."
     )
 
-    print_summary(train_df, validation_df)
+    parser.add_argument(
+        "--input",
+        default="data/raw/train.csv",
+    )
+
+    parser.add_argument(
+        "--train-output",
+        default="data/processed/train.csv",
+    )
+
+    parser.add_argument(
+        "--validation-output",
+        default="data/processed/validation.csv",
+    )
+
+    parser.add_argument(
+        "--validation-size",
+        type=float,
+        default=VALIDATION_SIZE,
+    )
+
+    parser.add_argument(
+        "--random-state",
+        type=int,
+        default=RANDOM_STATE,
+    )
+
+    args = parser.parse_args()
+
+    train_df, validation_df = prepare_train_validation(
+        input_path=args.input,
+        train_output=args.train_output,
+        validation_output=args.validation_output,
+        validation_size=args.validation_size,
+        random_state=args.random_state,
+    )
+
+    print_summary(
+        train_df,
+        validation_df,
+        validation_size=args.validation_size,
+        random_state=args.random_state,
+    )

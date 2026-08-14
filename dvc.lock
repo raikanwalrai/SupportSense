@@ -1,0 +1,32 @@
+schema: '2.0'
+stages:
+  split:
+    cmd: python -m src.data.split --input data/raw/train.csv --train-output 
+      data/processed/train.csv --validation-output data/processed/validation.csv
+      --validation-size 0.2 --random-state 42
+    deps:
+    - path: data/raw/train.csv
+      hash: md5
+      md5: cec64185f4197906aabce0781ef9a19b
+      size: 839073
+      isexec: true
+    - path: src/data/split.py
+      hash: md5
+      md5: 3c94ff413d00b5757d2de0318894ad40
+      size: 4802
+      isexec: true
+    params:
+      params.yaml:
+        split.random_state: 42
+        split.validation_size: 0.2
+    outs:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: fa451a8011cf354905cc7ab5c858343f
+      size: 665741
+      isexec: true
+    - path: data/processed/validation.csv
+      hash: md5
+      md5: 5d38e2cf7beb0ccd92c3642dc5db486f
+      size: 163342
+      isexec: true

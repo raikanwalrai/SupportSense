@@ -1,0 +1,18 @@
+stages:
+  split:
+    cmd: >-
+      python -m src.data.split
+      --input data/raw/train.csv
+      --train-output data/processed/train.csv
+      --validation-output data/processed/validation.csv
+      --validation-size ${split.validation_size}
+      --random-state ${split.random_state}
+    deps:
+      - data/raw/train.csv
+      - src/data/split.py
+    params:
+      - split.validation_size
+      - split.random_state
+    outs:
+      - data/processed/train.csv
+      - data/processed/validation.csv
