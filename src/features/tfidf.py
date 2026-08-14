@@ -1,14 +1,13 @@
 from pathlib import Path
+from typing import Any
+
+from src.config.experiment_config import (    
+	load_experiment_config,    
+	validate_experiment_config,
+)
 
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-
-DEFAULT_NGRAM_RANGE = (1, 2)
-DEFAULT_MIN_DF = 2
-DEFAULT_MAX_DF = 0.95
-DEFAULT_SUBLINEAR_TF = True
-
 
 def load_split(path: str | Path) -> pd.DataFrame:
     """Load a processed text classification split."""
@@ -33,17 +32,48 @@ def load_split(path: str | Path) -> pd.DataFrame:
 
     return df
 
+def create_tfidf_vectorizer(
+    config: dict[str, Any] | None = None,
+) -> TfidfVectorizer:
+    """Create the SupportSense TF-IDF vectorizer."""
 
-def create_tfidf_vectorizer() -> TfidfVectorizer:
-    """Create the standard SupportSense TF-IDF vectorizer."""
+    if config is None:
+        config = load_experiment_config(
+            "configs/experiments.yaml"
+        )
+
+    validate_experiment_config(config)
+
+    feature_config = config["features"]
+
+    if feature_config["type"] != "tfidf":
+        raise ValueError(
+            "Feature configuration must specify 'tfidf'."
+        )
 
     return TfidfVectorizer(
         lowercase=True,
-        ngram_range=DEFAULT_NGRAM_RANGE,
-        min_df=DEFAULT_MIN_DF,
-        max_df=DEFAULT_MAX_DF,
-        sublinear_tf=DEFAULT_SUBLINEAR_TF,
+        ngram_range=tuple(feature_config["ngram_range"]),
+        min_df=feature_config["min_df"],
+        max_df=feature_config["max_df"],
+        sublinear_tf=feature_config["sublinear_tf"],
     )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def fit_tfidf(

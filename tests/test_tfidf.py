@@ -91,3 +91,35 @@ def test_train_and_validation_share_same_feature_space():
     )
 
     assert X_validation.shape[1] == len(vectorizer.vocabulary_)
+
+def test_tfidf_vectorizer_accepts_custom_configuration():
+    config = {
+        "experiment": {
+            "name": "test_experiment",
+            "random_state": 42,
+            "primary_metric": "macro_f1",
+        },
+        "data": {
+            "train_path": "data/processed/train.csv",
+            "validation_path": "data/processed/validation.csv",
+        },
+        "features": {
+            "type": "tfidf",
+            "ngram_range": [1, 1],
+            "min_df": 5,
+            "max_df": 0.90,
+            "sublinear_tf": False,
+        },
+        "model": {
+            "type": "logistic_regression",
+            "max_iter": 1000,
+            "random_state": 42,
+        },
+    }
+
+    vectorizer = create_tfidf_vectorizer(config)
+
+    assert vectorizer.ngram_range == (1, 1)
+    assert vectorizer.min_df == 5
+    assert vectorizer.max_df == 0.90
+    assert vectorizer.sublinear_tf is False
