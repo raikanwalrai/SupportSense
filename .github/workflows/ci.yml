@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - "**"
-  pull_request:
-    branches:
-      - "**"
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   test:
@@ -27,6 +27,24 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: arn:aws:iam::429601541404:role/SupportSenseGitHubActionsDVC
+          aws-region: us-east-1
+
+      - name: Verify AWS identity
+        run: |
+          aws sts get-caller-identity
+
+      - name: Pull DVC data
+        run: |
+          dvc pull
+
+      - name: Reproduce DVC pipeline
+        run: |
+          dvc repro
 
       - name: Run test suite
         run: |
