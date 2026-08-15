@@ -1,4 +1,4 @@
 [core]
-    remote = local
-['remote "local"']
-    url = /mnt/c/Users/kanwa/mlops-projects/SupportSense-dvc-storage
+    remote = s3
+['remote "s3"']
+    url = s3://supportsense-dvc-da25m575-2026
