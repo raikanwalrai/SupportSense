@@ -12,3 +12,7 @@ pytest==9.1.1
 
 pyspark==4.1.2
 ray==2.56.1
+
+# Machine learning
+
+scikit-learn==1.9.0
