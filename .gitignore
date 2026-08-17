@@ -64,3 +64,5 @@ temp/
 # Local MLflow tracking state
 mlflow.db
 mlruns/
+
+airflow/.env
