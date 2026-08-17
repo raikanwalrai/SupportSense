@@ -61,3 +61,6 @@ datasets/
 # Temporary files
 tmp/
 temp/
+# Local MLflow tracking state
+mlflow.db
+mlruns/

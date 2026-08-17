@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Any
 
+import mlflow.sklearn
+import mlflow
 import ray
 
 
@@ -40,10 +42,15 @@ def select_best_experiment(
         key=lambda result: result["macro_f1"],
     )
 
+
+
+
 def run_ray_experiments(
     config_path: str | Path,
 ) -> list[dict[str, Any]]:
     """Run candidate Logistic Regression experiments with Ray."""
+    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    mlflow.set_experiment("SupportSense Logistic Regression Tuning")
 
     from sklearn.linear_model import LogisticRegression
 
@@ -93,43 +100,127 @@ def run_ray_experiments(
             ignore_reinit_error=True,
         )
 
+#    @ray.remote
+#    def run_single_experiment(
+#        experiment_config: dict[str, Any],
+#    ) -> dict[str, Any]:
+#
+#        model = LogisticRegression(
+#            C=experiment_config["C"],
+#            class_weight=experiment_config["class_weight"],
+#            max_iter=1000,
+#            random_state=42,
+#        )
+#
+#        model.fit(
+#            X_train,
+#            y_train,
+#        )
+#
+#        predictions = model.predict(X_validation)
+#
+#        return {
+#            "C": experiment_config["C"],
+#            "class_weight": experiment_config["class_weight"],
+#            "accuracy": accuracy_score(
+#                y_validation,
+#                predictions,
+#            ),
+#            "macro_f1": f1_score(
+#                y_validation,
+#                predictions,
+#                average="macro",
+#            ),
+#            "weighted_f1": f1_score(
+#                y_validation,
+#                predictions,
+#                average="weighted",
+#            ),
+#        }
+#
+#    futures = [
+#        run_single_experiment.remote(experiment_config)
+#        for experiment_config in experiment_configs
+#    ]
+#
+#    results = ray.get(futures)
+
+#    return results
+
+
     @ray.remote
     def run_single_experiment(
         experiment_config: dict[str, Any],
     ) -> dict[str, Any]:
+        """Train and evaluate one Logistic Regression experiment."""
 
-        model = LogisticRegression(
-            C=experiment_config["C"],
-            class_weight=experiment_config["class_weight"],
-            max_iter=1000,
-            random_state=42,
+        # Each Ray worker is a separate process, so configure MLflow
+        # explicitly inside the worker.
+        mlflow.set_tracking_uri("http://127.0.0.1:5000")
+        mlflow.set_experiment(
+            "SupportSense Logistic Regression Tuning"
         )
 
-        model.fit(
-            X_train,
-            y_train,
-        )
+        with mlflow.start_run():
+            mlflow.log_params(
+                {
+                    "C": experiment_config["C"],
+                    "class_weight": experiment_config["class_weight"],
+                    "max_iter": 1000,
+                    "random_state": 42,
+                }
+            )
 
-        predictions = model.predict(X_validation)
+            model = LogisticRegression(
+                C=experiment_config["C"],
+                class_weight=experiment_config["class_weight"],
+                max_iter=1000,
+                random_state=42,
+            )
 
-        return {
-            "C": experiment_config["C"],
-            "class_weight": experiment_config["class_weight"],
-            "accuracy": accuracy_score(
+            model.fit(
+                X_train,
+                y_train,
+            )
+
+            predictions = model.predict(X_validation)
+
+            accuracy = accuracy_score(
                 y_validation,
                 predictions,
-            ),
-            "macro_f1": f1_score(
+            )
+
+            macro_f1 = f1_score(
                 y_validation,
                 predictions,
                 average="macro",
-            ),
-            "weighted_f1": f1_score(
+            )
+
+            weighted_f1 = f1_score(
                 y_validation,
                 predictions,
                 average="weighted",
-            ),
-        }
+            )
+
+            mlflow.log_metrics(
+                {
+                    "accuracy": accuracy,
+                    "macro_f1": macro_f1,
+                    "weighted_f1": weighted_f1,
+                }
+            )
+            mlflow.sklearn.log_model(
+		    model,
+		    name="model",
+		)
+
+            return {
+                "C": experiment_config["C"],
+                "class_weight": experiment_config["class_weight"],
+                "accuracy": accuracy,
+                "macro_f1": macro_f1,
+                "weighted_f1": weighted_f1,
+            }
 
     futures = [
         run_single_experiment.remote(experiment_config)
@@ -139,4 +230,3 @@ def run_ray_experiments(
     results = ray.get(futures)
 
     return results
-
