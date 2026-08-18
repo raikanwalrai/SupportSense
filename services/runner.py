@@ -12,7 +12,7 @@ app = FastAPI(
     version="0.2.0",
 )
 
-PROJECT_DIR = Path("/home/kanwa/projects/SupportSense")
+PROJECT_DIR = Path(__file__).resolve().parents[1]
 
 
 HTTP_REQUESTS_TOTAL = Counter(
