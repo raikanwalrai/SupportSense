@@ -1,7 +1,10 @@
 from pathlib import Path
 import subprocess
+import time
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import Response
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 app = FastAPI(
     title="SupportSense Runner",
@@ -12,6 +15,44 @@ app = FastAPI(
 PROJECT_DIR = Path("/home/kanwa/projects/SupportSense")
 
 
+HTTP_REQUESTS_TOTAL = Counter(
+    "supportsense_http_requests_total",
+    "Total number of HTTP requests handled by the SupportSense Runner.",
+    ["method", "endpoint", "status"],
+)
+
+HTTP_REQUEST_DURATION_SECONDS = Histogram(
+    "supportsense_http_request_duration_seconds",
+    "HTTP request duration in seconds.",
+    ["method", "endpoint"],
+)
+
+
+@app.middleware("http")
+async def prometheus_middleware(request: Request, call_next):
+    """Record request count and latency for application endpoints."""
+    start_time = time.perf_counter()
+
+    response = await call_next(request)
+
+    duration = time.perf_counter() - start_time
+
+    endpoint = request.url.path
+
+    HTTP_REQUESTS_TOTAL.labels(
+        method=request.method,
+        endpoint=endpoint,
+        status=str(response.status_code),
+    ).inc()
+
+    HTTP_REQUEST_DURATION_SECONDS.labels(
+        method=request.method,
+        endpoint=endpoint,
+    ).observe(duration)
+
+    return response
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     """Return runner health status."""
@@ -19,6 +60,15 @@ def health() -> dict[str, str]:
         "status": "ok",
         "service": "supportsense-runner",
     }
+
+
+@app.get("/metrics")
+def metrics() -> Response:
+    """Expose Prometheus metrics."""
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST,
+    )
 
 
 @app.post("/dvc/pull")
@@ -62,6 +112,8 @@ def dvc_pull() -> dict[str, object]:
         "returncode": result.returncode,
         "stdout": result.stdout,
     }
+
+
 @app.post("/ray/experiments")
 def ray_experiments() -> dict[str, object]:
     """Run the configured Ray experiments and return the results."""
