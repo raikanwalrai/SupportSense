@@ -1,0 +1,17 @@
+name: supportsense-grafana
+
+services:
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: supportsense-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - supportsense_grafana_data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning:ro
+    restart: unless-stopped
+
+volumes:
+  supportsense_grafana_data:
+    name: supportsense-grafana_data

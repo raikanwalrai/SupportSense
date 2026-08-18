@@ -154,6 +154,36 @@ fi
 echo
 
 # ------------------------------------------------------------
+# Prometheus
+# ------------------------------------------------------------
+
+echo "===== PROMETHEUS ====="
+
+if curl -sf "$PROMETHEUS_URL/-/healthy" >/dev/null 2>&1; then
+    echo "Prometheus: HEALTHY"
+    echo "URL: $PROMETHEUS_URL"
+else
+    echo "Prometheus: NOT RUNNING"
+fi
+
+echo
+
+# ------------------------------------------------------------
+# Grafana
+# ------------------------------------------------------------
+
+echo "===== GRAFANA ====="
+
+if curl -sf "$GRAFANA_URL/api/health" >/dev/null 2>&1; then
+    echo "Grafana: HEALTHY"
+    echo "URL: $GRAFANA_URL"
+else
+    echo "Grafana: NOT RUNNING"
+fi
+
+echo
+
+# ------------------------------------------------------------
 # Airflow
 # ------------------------------------------------------------
 

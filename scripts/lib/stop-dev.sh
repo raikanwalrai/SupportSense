@@ -40,7 +40,7 @@ echo
 # Stop MLflow
 # ------------------------------------------------------------
 
-echo "[1/4] Stopping MLflow..."
+echo "[1/5] Stopping MLflow..."
 
 if [[ -f "$MLFLOW_PID_FILE" ]]; then
     pid="$(cat "$MLFLOW_PID_FILE" 2>/dev/null || true)"
@@ -64,7 +64,7 @@ echo
 # Stop Runner
 # ------------------------------------------------------------
 
-echo "[2/4] Stopping SupportSense Runner..."
+echo "[2/5] Stopping SupportSense Runner..."
 
 if [[ -f "$RUNNER_PID_FILE" ]]; then
     pid="$(cat "$RUNNER_PID_FILE" 2>/dev/null || true)"
@@ -88,7 +88,7 @@ echo
 # Stop Prometheus
 # ------------------------------------------------------------
 
-echo "[3/4] Stopping Prometheus Docker Compose stack..."
+echo "[3/5] Stopping Prometheus Docker Compose stack..."
 
 PROMETHEUS_DIR="$ROOT_DIR/monitoring/prometheus"
 
@@ -105,10 +105,30 @@ fi
 echo
 
 # ------------------------------------------------------------
+# Stop Grafana
+# ------------------------------------------------------------
+
+echo "[4/5] Stopping Grafana Docker Compose stack..."
+
+GRAFANA_DIR="$ROOT_DIR/monitoring/grafana"
+
+if [[ -f "$GRAFANA_DIR/docker-compose.yml" ]]; then
+    cd "$GRAFANA_DIR"
+
+    docker compose stop
+
+    echo "      Grafana services stopped."
+    echo "      Docker volumes were preserved."
+else
+    echo "      Grafana Compose file not found; skipping."
+fi
+echo
+
+# ------------------------------------------------------------
 # Stop Airflow
 # ------------------------------------------------------------
 
-echo "[4/4] Stopping Airflow Docker Compose stack..."
+echo "[5/5] Stopping Airflow Docker Compose stack..."
 
 if [[ -f "$AIRFLOW_DIR/docker-compose.yaml" ]]; then
     cd "$AIRFLOW_DIR"

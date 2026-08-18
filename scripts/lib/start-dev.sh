@@ -95,7 +95,7 @@ fi
 # Python / MLflow
 # ------------------------------------------------------------
 
-echo "[1/3] Starting MLflow..."
+echo "[1/5] Starting MLflow..."
 
 if curl -sf "$MLFLOW_URL/version" >/dev/null 2>&1; then
     echo "      MLflow is already running."
@@ -165,7 +165,7 @@ echo
 # SupportSense Runner
 # ------------------------------------------------------------
 
-echo "[2/3] Starting SupportSense Runner..."
+echo "[2/5] Starting SupportSense Runner..."
 
 if curl -sf "$RUNNER_URL/health" >/dev/null 2>&1; then
     echo "      Runner is already running."
@@ -232,7 +232,7 @@ echo
 # Prometheus
 # ------------------------------------------------------------
 
-echo "[3/4] Starting Prometheus..."
+echo "[3/5] Starting Prometheus..."
 
 PROMETHEUS_DIR="$ROOT_DIR/monitoring/prometheus"
 
@@ -270,10 +270,51 @@ done
 echo
 
 # ------------------------------------------------------------
+# Grafana
+# ------------------------------------------------------------
+
+echo "[4/5] Starting Grafana..."
+
+GRAFANA_DIR="$ROOT_DIR/monitoring/grafana"
+
+if [[ ! -f "$GRAFANA_DIR/docker-compose.yml" ]]; then
+    echo "ERROR: Grafana Compose file not found:"
+    echo "       $GRAFANA_DIR/docker-compose.yml"
+    exit 1
+fi
+
+cd "$GRAFANA_DIR"
+
+docker compose up -d
+
+echo
+echo "      Grafana Docker Compose started."
+
+for i in {1..30}; do
+    if curl -sf "$GRAFANA_URL/api/health" >/dev/null 2>&1; then
+        echo "      Grafana health: OK"
+        break
+    fi
+
+    if [[ "$i" -eq 30 ]]; then
+        echo "WARNING: Grafana did not report healthy within the wait period."
+        echo "Check:"
+        echo "    cd $GRAFANA_DIR"
+        echo "    docker compose ps"
+        echo "    docker compose logs --tail=100"
+        break
+    fi
+
+    sleep 2
+done
+
+echo
+
+# ------------------------------------------------------------
 # Airflow
 # ------------------------------------------------------------
 
-echo "[4/4] Starting Airflow Docker Compose stack..."
+echo "[5/5] Starting Airflow Docker Compose stack..."
 
 if [[ ! -f "$AIRFLOW_DIR/docker-compose.yaml" ]]; then
     echo "ERROR: Airflow Compose file not found:"

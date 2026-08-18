@@ -15,9 +15,12 @@
 #   4. DVC status
 #   5. MLflow health
 #   6. Runner health
-#   7. Airflow health
-#   8. Airflow DAG visibility
-#   9. Full pytest suite
+#   7. Runner health
+#   8. Prometheus health and Runner scrape
+#   9. Grafana health
+#   10. Airflow health
+#   11. Airflow DAG visibility
+#   12. Full pytest suite
 #
 # This is intentionally more expensive than "status".
 #
@@ -230,10 +233,59 @@ fi
 echo
 
 # ------------------------------------------------------------
+# Prometheus
+# ------------------------------------------------------------
+
+echo "===== 8. PROMETHEUS ====="
+
+if curl -sf "$PROMETHEUS_URL/-/healthy"; then
+    echo
+    pass "Prometheus health"
+else
+    fail "Prometheus health"
+fi
+
+echo
+
+echo "Prometheus Runner target:"
+
+PROMETHEUS_TARGET="$(
+    curl -sf -G "$PROMETHEUS_URL/api/v1/query"         --data-urlencode 'query=up{job="supportsense-runner"}'         2>/dev/null || true
+)"
+
+if printf '%s' "$PROMETHEUS_TARGET" |
+    grep -q '"status":"success"' &&
+    printf '%s' "$PROMETHEUS_TARGET" |
+    grep -q '"value":\[[^]]*,"1"\]'; then
+    echo "$PROMETHEUS_TARGET"
+    pass "Prometheus scraping SupportSense Runner"
+else
+    echo "$PROMETHEUS_TARGET"
+    fail "Prometheus scraping SupportSense Runner"
+fi
+
+echo
+
+# ------------------------------------------------------------
+# Grafana
+# ------------------------------------------------------------
+
+echo "===== 9. GRAFANA ====="
+
+if curl -sf "$GRAFANA_URL/api/health"; then
+    echo
+    pass "Grafana health"
+else
+    fail "Grafana health"
+fi
+
+echo
+
+# ------------------------------------------------------------
 # Airflow health
 # ------------------------------------------------------------
 
-echo "===== 8. AIRFLOW HEALTH ====="
+echo "===== 10. AIRFLOW HEALTH ====="
 
 if curl -sf "$AIRFLOW_URL/api/v2/monitor/health"; then
     echo
@@ -248,7 +300,7 @@ echo
 # Airflow DAG
 # ------------------------------------------------------------
 
-echo "===== 9. AIRFLOW DAG ====="
+echo "===== 11. AIRFLOW DAG ====="
 
 if [[ -f "$AIRFLOW_DIR/docker-compose.yaml" ]]; then
     cd "$AIRFLOW_DIR"
@@ -271,7 +323,7 @@ echo
 # Full test suite
 # ------------------------------------------------------------
 
-echo "===== 10. FULL PYTEST SUITE ====="
+echo "===== 12. FULL PYTEST SUITE ====="
 echo
 echo "Runs the complete automated test suite, including"
 echo "the lightweight Ray smoke integration tests."
