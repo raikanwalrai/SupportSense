@@ -11,7 +11,7 @@ import os
 import mlflow
 import ray
 from ray import tune
-from ray.air import session
+from ray.tune.schedulers import ASHAScheduler
 
 from src.models.deep_learning.train import train
 
@@ -34,8 +34,8 @@ def train_trial(config):
         patience=config["patience"],
         use_ray=True,
         checkpoint_path=(
-            f"models/deep_learning/"
-            f"ray_trial_{session.get_trial_id()}.pt"
+            "models/deep_learning/"
+            "ray_trial_checkpoint.pt"
         ),
     )
 
@@ -53,22 +53,48 @@ def main():
     print("Ray version    :", ray.__version__)
     print("MLflow URI     :", tracking_uri)
 
-    search_space = {
-        "epochs": 2,
-        "patience": 3,
-        "batch_size": 32,
+    search_space = tune.grid_search(
+        [
+            {
+                "epochs": 3,
+                "patience": 3,
+                "batch_size": 32,
+                "learning_rate": 0.001,
+                "embedding_dim": 128,
+                "dropout": 0.2,
+            },
+            {
+                "epochs": 3,
+                "patience": 3,
+                "batch_size": 32,
+                "learning_rate": 0.0005,
+                "embedding_dim": 128,
+                "dropout": 0.2,
+            },
+            {
+                "epochs": 3,
+                "patience": 3,
+                "batch_size": 32,
+                "learning_rate": 0.001,
+                "embedding_dim": 128,
+                "dropout": 0.3,
+            },
+        ]
+    )
 
-        "learning_rate": 0.001,
-
-        "embedding_dim": 128,
-
-        "dropout": 0.2,
-    }
+    scheduler = ASHAScheduler(
+        metric="validation_loss",
+        mode="min",
+        max_t=3,
+        grace_period=1,
+        reduction_factor=2,
+    )
 
     tuner = tune.Tuner(
         train_trial,
         param_space=search_space,
         tune_config=tune.TuneConfig(
+            scheduler=scheduler,
             max_concurrent_trials=1,
         ),
     )
