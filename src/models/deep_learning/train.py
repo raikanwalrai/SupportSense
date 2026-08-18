@@ -4,25 +4,31 @@ SupportSense deep-learning training experiment.
 Architecture:
     Embedding -> Mean Pooling -> Linear Classifier
 
-This version provides:
+MLOps capabilities:
     - configurable training
     - reproducibility
     - validation evaluation
     - best-model checkpointing
-
-MLflow integration will be added next.
+    - MLflow experiment tracking
 """
 
 import argparse
+import os
 from pathlib import Path
 
+import mlflow
+import mlflow.pytorch
 import torch
 import torch.nn as nn
+from mlflow.models import infer_signature
 from torch.optim import Adam
 
 from src.models.deep_learning.loaders import build_dataloaders
 from src.models.deep_learning.model import SupportSenseTextClassifier
 from src.models.deep_learning.reproducibility import set_seed
+
+
+EXPERIMENT_NAME = "SupportSense-DL"
 
 
 def run_epoch(
@@ -121,6 +127,8 @@ def train(
     seed=42,
     device=None,
     checkpoint_path="models/deep_learning/best_model.pt",
+    patience=3,
+    dropout=0.0,
 ):
 
     set_seed(seed)
@@ -132,6 +140,24 @@ def train(
             else "cpu"
         )
 
+    mlflow_tracking_uri = os.environ.get(
+        "MLFLOW_TRACKING_URI"
+    )
+
+    if not mlflow_tracking_uri:
+        raise RuntimeError(
+            "MLFLOW_TRACKING_URI is not set. "
+            "Run: source .dev/environment.sh"
+        )
+
+    mlflow.set_tracking_uri(
+        mlflow_tracking_uri
+    )
+
+    mlflow.set_experiment(
+        EXPERIMENT_NAME
+    )
+
     (
         train_loader,
         validation_loader,
@@ -139,7 +165,7 @@ def train(
         label_to_id,
         id_to_label,
     ) = build_dataloaders(
-        train_path="data/raw/train.csv",
+        train_path="data/processed/train.csv",
         validation_path="data/processed/validation.csv",
         max_vocab_size=max_vocab_size,
         max_length=max_length,
@@ -150,6 +176,7 @@ def train(
         vocab_size=tokenizer.vocab_size,
         embedding_dim=embedding_dim,
         num_classes=len(label_to_id),
+        dropout=dropout,
     ).to(device)
 
     loss_fn = nn.CrossEntropyLoss()
@@ -168,9 +195,15 @@ def train(
         "max_length": max_length,
         "seed": seed,
         "device": device,
+        "patience": patience,
+        "dropout": dropout,
+        "vocab_size": tokenizer.vocab_size,
+        "num_classes": len(label_to_id),
     }
 
     print("===== SUPPORTSENSE DL TRAINING =====")
+    print("MLflow URI      :", mlflow_tracking_uri)
+    print("Experiment      :", EXPERIMENT_NAME)
     print("Device          :", device)
     print("Seed            :", seed)
     print("Vocabulary      :", tokenizer.vocab_size)
@@ -179,80 +212,166 @@ def train(
     print("Batch size      :", batch_size)
     print("Learning rate   :", learning_rate)
     print("Epochs          :", epochs)
+    print("Patience        :", patience)
+    print("Dropout         :", dropout)
     print("Checkpoint      :", checkpoint_path)
 
-    history = []
+    with mlflow.start_run() as run:
 
-    best_validation_loss = float("inf")
-    best_epoch = None
+        print("MLflow Run ID   :", run.info.run_id)
 
-    for epoch in range(epochs):
+        mlflow.log_params(config)
 
-        train_loss, train_accuracy = run_epoch(
-            model=model,
-            loader=train_loader,
-            loss_fn=loss_fn,
-            optimizer=optimizer,
-            device=device,
-        )
+        history = []
 
-        validation_loss, validation_accuracy = run_epoch(
-            model=model,
-            loader=validation_loader,
-            loss_fn=loss_fn,
-            optimizer=None,
-            device=device,
-        )
+        best_validation_loss = float("inf")
+        best_epoch = None
+        epochs_without_improvement = 0
 
-        metrics = {
-            "epoch": epoch + 1,
-            "train_loss": train_loss,
-            "train_accuracy": train_accuracy,
-            "validation_loss": validation_loss,
-            "validation_accuracy": validation_accuracy,
-        }
+        for epoch in range(epochs):
 
-        history.append(metrics)
-
-        print()
-        print(f"Epoch {epoch + 1}/{epochs}")
-
-        print(
-            f"  Train      "
-            f"Loss: {train_loss:.4f} "
-            f"Accuracy: {train_accuracy:.4f}"
-        )
-
-        print(
-            f"  Validation "
-            f"Loss: {validation_loss:.4f} "
-            f"Accuracy: {validation_accuracy:.4f}"
-        )
-
-        if validation_loss < best_validation_loss:
-
-            best_validation_loss = validation_loss
-            best_epoch = epoch + 1
-
-            save_checkpoint(
+            train_loss, train_accuracy = run_epoch(
                 model=model,
-                tokenizer=tokenizer,
-                label_to_id=label_to_id,
-                config=config,
-                path=checkpoint_path,
+                loader=train_loader,
+                loss_fn=loss_fn,
+                optimizer=optimizer,
+                device=device,
+            )
+
+            validation_loss, validation_accuracy = run_epoch(
+                model=model,
+                loader=validation_loader,
+                loss_fn=loss_fn,
+                optimizer=None,
+                device=device,
+            )
+
+            metrics = {
+                "epoch": epoch + 1,
+                "train_loss": train_loss,
+                "train_accuracy": train_accuracy,
+                "validation_loss": validation_loss,
+                "validation_accuracy": validation_accuracy,
+            }
+
+            history.append(metrics)
+
+            mlflow.log_metrics(
+                {
+                    "train_loss": train_loss,
+                    "train_accuracy": train_accuracy,
+                    "validation_loss": validation_loss,
+                    "validation_accuracy": validation_accuracy,
+                },
+                step=epoch + 1,
+            )
+
+            print()
+            print(f"Epoch {epoch + 1}/{epochs}")
+
+            print(
+                f"  Train      "
+                f"Loss: {train_loss:.4f} "
+                f"Accuracy: {train_accuracy:.4f}"
             )
 
             print(
-                f"  ✓ New best model saved "
-                f"(validation loss: "
-                f"{validation_loss:.4f})"
+                f"  Validation "
+                f"Loss: {validation_loss:.4f} "
+                f"Accuracy: {validation_accuracy:.4f}"
             )
 
-    print()
-    print("===== TRAINING COMPLETE =====")
-    print("Best epoch         :", best_epoch)
-    print("Best validation loss:", f"{best_validation_loss:.4f}")
-    print("Checkpoint         :", checkpoint_path)
+            if validation_loss < best_validation_loss:
+
+                best_validation_loss = validation_loss
+                best_epoch = epoch + 1
+                epochs_without_improvement = 0
+
+                save_checkpoint(
+                    model=model,
+                    tokenizer=tokenizer,
+                    label_to_id=label_to_id,
+                    config=config,
+                    path=checkpoint_path,
+                )
+
+                mlflow.log_artifact(
+                    checkpoint_path,
+                    artifact_path="model_checkpoint",
+                )
+
+                print(
+                    f"  ✓ New best model saved "
+                    f"(validation loss: "
+                    f"{validation_loss:.4f})"
+                )
+
+            else:
+
+                epochs_without_improvement += 1
+
+                print(
+                    f"  No improvement "
+                    f"({epochs_without_improvement}/"
+                    f"{patience})"
+                )
+
+                if epochs_without_improvement >= patience:
+
+                    print()
+                    print(
+                        "  Early stopping triggered."
+                    )
+
+                    print(
+                        f"  No validation improvement "
+                        f"for {patience} epochs."
+                    )
+
+                    break
+
+
+        mlflow.log_metric(
+            "best_validation_loss",
+            best_validation_loss,
+        )
+
+        mlflow.log_metric(
+            "best_epoch",
+            best_epoch,
+        )
+
+        # Log the PyTorch model itself as an MLflow model.
+        example_batch = next(
+            iter(validation_loader)
+        )["input_ids"][:1].to(device)
+
+        with torch.no_grad():
+            example_output = model(
+                example_batch
+            ).detach().cpu().numpy()
+
+        signature = infer_signature(
+            example_batch.cpu().numpy(),
+            example_output,
+        )
+
+        mlflow.pytorch.log_model(
+            model,
+            name="model",
+            signature=signature,
+            input_example=example_batch.cpu(),
+        )
+
+        print()
+        print("===== TRAINING COMPLETE =====")
+        print("Best epoch          :", best_epoch)
+        print(
+            "Best validation loss:",
+            f"{best_validation_loss:.4f}",
+        )
+        print("Checkpoint          :", checkpoint_path)
+        print("MLflow Run ID       :", run.info.run_id)
 
     return model, history
 
@@ -314,6 +433,18 @@ def parse_args():
     )
 
     parser.add_argument(
+	    "--patience",
+	    type=int,
+	    default=3,
+    )
+
+    parser.add_argument(
+        "--dropout",
+        type=float,
+        default=0.0,
+    )
+
+    parser.add_argument(
         "--checkpoint-path",
         type=str,
         default="models/deep_learning/best_model.pt",
@@ -335,5 +466,7 @@ if __name__ == "__main__":
         max_length=args.max_length,
         seed=args.seed,
         device=args.device,
+        patience=args.patience,
+        dropout=args.dropout,
         checkpoint_path=args.checkpoint_path,
     )

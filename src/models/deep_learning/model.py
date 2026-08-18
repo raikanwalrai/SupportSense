@@ -31,6 +31,7 @@ class SupportSenseTextClassifier(nn.Module):
         embedding_dim: int,
         num_classes: int,
         padding_idx: int = 0,
+        dropout: float = 0.0,
     ):
         super().__init__()
 
@@ -38,6 +39,10 @@ class SupportSenseTextClassifier(nn.Module):
             num_embeddings=vocab_size,
             embedding_dim=embedding_dim,
             padding_idx=padding_idx,
+        )
+
+        self.dropout = nn.Dropout(
+            p=dropout,
         )
 
         self.classifier = nn.Linear(
@@ -74,6 +79,8 @@ class SupportSenseTextClassifier(nn.Module):
             / token_counts
         )
 
-        logits = self.classifier(pooled)
+        regularized = self.dropout(pooled)
+
+        logits = self.classifier(regularized)
 
         return logits
