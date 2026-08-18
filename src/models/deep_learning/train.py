@@ -18,6 +18,11 @@ from pathlib import Path
 
 import mlflow
 import mlflow.pytorch
+
+try:
+    from ray import tune as ray_tune
+except ImportError:
+    ray_tune = None
 import torch
 import torch.nn as nn
 from mlflow.models import infer_signature
@@ -29,6 +34,7 @@ from src.models.deep_learning.reproducibility import set_seed
 
 
 EXPERIMENT_NAME = "SupportSense-DL"
+
 
 
 def run_epoch(
@@ -129,6 +135,7 @@ def train(
     checkpoint_path="models/deep_learning/best_model.pt",
     patience=3,
     dropout=0.0,
+    use_ray=False,
 ):
 
     set_seed(seed)
@@ -158,6 +165,22 @@ def train(
         EXPERIMENT_NAME
     )
 
+    project_root = Path(__file__).resolve().parents[3]
+
+    train_path = (
+        project_root
+        / "data"
+        / "processed"
+        / "train.csv"
+    )
+
+    validation_path = (
+        project_root
+        / "data"
+        / "processed"
+        / "validation.csv"
+    )
+
     (
         train_loader,
         validation_loader,
@@ -165,8 +188,8 @@ def train(
         label_to_id,
         id_to_label,
     ) = build_dataloaders(
-        train_path="data/processed/train.csv",
-        validation_path="data/processed/validation.csv",
+        train_path=str(train_path),
+        validation_path=str(validation_path),
         max_vocab_size=max_vocab_size,
         max_length=max_length,
         batch_size=batch_size,
@@ -265,6 +288,19 @@ def train(
                 },
                 step=epoch + 1,
             )
+
+            # Report epoch-level metrics to Ray Tune when
+            # this training run is executed inside a Ray trial.
+            if use_ray and ray_tune is not None:
+                ray_tune.report(
+                    {
+                        "epoch": epoch + 1,
+                        "train_loss": train_loss,
+                        "train_accuracy": train_accuracy,
+                        "validation_loss": validation_loss,
+                        "validation_accuracy": validation_accuracy,
+                    }
+                )
 
             print()
             print(f"Epoch {epoch + 1}/{epochs}")
