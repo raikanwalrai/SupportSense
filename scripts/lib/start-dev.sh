@@ -229,10 +229,51 @@ done
 echo
 
 # ------------------------------------------------------------
+# Prometheus
+# ------------------------------------------------------------
+
+echo "[3/4] Starting Prometheus..."
+
+PROMETHEUS_DIR="$ROOT_DIR/monitoring/prometheus"
+
+if [[ ! -f "$PROMETHEUS_DIR/docker-compose.yml" ]]; then
+    echo "ERROR: Prometheus Compose file not found:"
+    echo "       $PROMETHEUS_DIR/docker-compose.yml"
+    exit 1
+fi
+
+cd "$PROMETHEUS_DIR"
+
+docker compose up -d
+
+echo
+echo "      Prometheus Docker Compose started."
+
+for i in {1..30}; do
+    if curl -sf "$PROMETHEUS_URL/-/healthy" >/dev/null 2>&1; then
+        echo "      Prometheus health: OK"
+        break
+    fi
+
+    if [[ "$i" -eq 30 ]]; then
+        echo "WARNING: Prometheus did not report healthy within the wait period."
+        echo "Check:"
+        echo "    cd $PROMETHEUS_DIR"
+        echo "    docker compose ps"
+        echo "    docker compose logs --tail=100"
+        break
+    fi
+
+    sleep 2
+done
+
+echo
+
+# ------------------------------------------------------------
 # Airflow
 # ------------------------------------------------------------
 
-echo "[3/3] Starting Airflow Docker Compose stack..."
+echo "[4/4] Starting Airflow Docker Compose stack..."
 
 if [[ ! -f "$AIRFLOW_DIR/docker-compose.yaml" ]]; then
     echo "ERROR: Airflow Compose file not found:"

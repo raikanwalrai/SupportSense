@@ -10,6 +10,7 @@
 # Stops:
 #   - MLflow process started by SupportSense
 #   - SupportSense Runner started by SupportSense
+#   - Prometheus Docker Compose services
 #   - Airflow Docker Compose services
 #
 # Docker volumes are NOT deleted.
@@ -39,7 +40,7 @@ echo
 # Stop MLflow
 # ------------------------------------------------------------
 
-echo "[1/3] Stopping MLflow..."
+echo "[1/4] Stopping MLflow..."
 
 if [[ -f "$MLFLOW_PID_FILE" ]]; then
     pid="$(cat "$MLFLOW_PID_FILE" 2>/dev/null || true)"
@@ -63,7 +64,7 @@ echo
 # Stop Runner
 # ------------------------------------------------------------
 
-echo "[2/3] Stopping SupportSense Runner..."
+echo "[2/4] Stopping SupportSense Runner..."
 
 if [[ -f "$RUNNER_PID_FILE" ]]; then
     pid="$(cat "$RUNNER_PID_FILE" 2>/dev/null || true)"
@@ -84,10 +85,30 @@ fi
 echo
 
 # ------------------------------------------------------------
+# Stop Prometheus
+# ------------------------------------------------------------
+
+echo "[3/4] Stopping Prometheus Docker Compose stack..."
+
+PROMETHEUS_DIR="$ROOT_DIR/monitoring/prometheus"
+
+if [[ -f "$PROMETHEUS_DIR/docker-compose.yml" ]]; then
+    cd "$PROMETHEUS_DIR"
+
+    docker compose stop
+
+    echo "      Prometheus services stopped."
+    echo "      Docker volumes were preserved."
+else
+    echo "      Prometheus Compose file not found; skipping."
+fi
+echo
+
+# ------------------------------------------------------------
 # Stop Airflow
 # ------------------------------------------------------------
 
-echo "[3/3] Stopping Airflow Docker Compose stack..."
+echo "[4/4] Stopping Airflow Docker Compose stack..."
 
 if [[ -f "$AIRFLOW_DIR/docker-compose.yaml" ]]; then
     cd "$AIRFLOW_DIR"

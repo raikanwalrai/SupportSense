@@ -1,0 +1,19 @@
+name: supportsense-monitoring
+
+services:
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: supportsense-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - supportsense_prometheus_data:/prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+volumes:
+  supportsense_prometheus_data:
+    name: supportsense-prometheus_data

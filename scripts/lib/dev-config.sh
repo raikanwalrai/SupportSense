@@ -23,6 +23,7 @@ export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI:-$MLFLOW_URL}"
 
 export RUNNER_URL="${RUNNER_URL:-http://127.0.0.1:8000}"
 export AIRFLOW_URL="${AIRFLOW_URL:-http://127.0.0.1:18080}"
+export PROMETHEUS_URL="${PROMETHEUS_URL:-http://127.0.0.1:9090}"
 
 
 supportsense_pid_is_running() {
