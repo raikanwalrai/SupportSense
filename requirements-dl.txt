@@ -1,0 +1,10 @@
+# SupportSense Deep Learning
+#
+# Development/training dependency.
+# GPU-specific PyTorch builds may be selected by the
+# training environment (for example, Google Colab).
+#
+# Local WSL development currently uses the installed
+# PyTorch package for CPU-side development/testing.
+
+torch==2.13.0
