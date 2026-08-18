@@ -21,12 +21,10 @@
 set -u
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$ROOT_DIR/scripts/lib/dev-config.sh"
 AIRFLOW_DIR="$ROOT_DIR/airflow"
 DEV_DIR="$ROOT_DIR/.dev"
 
-MLFLOW_URL="http://127.0.0.1:5000"
-RUNNER_URL="http://127.0.0.1:8000"
-AIRFLOW_URL="http://127.0.0.1:18080"
 
 echo "============================================================"
 echo " SupportSense Development Environment"
@@ -106,12 +104,22 @@ echo "===== MLFLOW ====="
 if curl -sf "$MLFLOW_URL/version" >/dev/null 2>&1; then
     echo "MLflow: HEALTHY"
     echo "URL: $MLFLOW_URL"
+
+    if [[ -f "$DEV_DIR/mlflow.pid" ]]; then
+        pid="$(cat "$DEV_DIR/mlflow.pid" 2>/dev/null || true)"
+
+        if supportsense_process_matches "$pid" ".venv/bin/mlflow server"; then
+            echo "Ownership: SUPPORTSENSE"
+            echo "PID: $pid"
+        else
+            echo "Ownership: EXTERNAL"
+            rm -f "$DEV_DIR/mlflow.pid"
+        fi
+    else
+        echo "Ownership: EXTERNAL"
+    fi
 else
     echo "MLflow: NOT RUNNING"
-fi
-
-if [[ -f "$DEV_DIR/mlflow.pid" ]]; then
-    echo "PID: $(cat "$DEV_DIR/mlflow.pid")"
 fi
 
 echo
@@ -125,12 +133,22 @@ echo "===== SUPPORTSENSE RUNNER ====="
 if curl -sf "$RUNNER_URL/health" >/dev/null 2>&1; then
     echo "Runner: HEALTHY"
     echo "URL: $RUNNER_URL/health"
+
+    if [[ -f "$DEV_DIR/runner.pid" ]]; then
+        pid="$(cat "$DEV_DIR/runner.pid" 2>/dev/null || true)"
+
+        if supportsense_process_matches "$pid" "services.runner:app"; then
+            echo "Ownership: SUPPORTSENSE"
+            echo "PID: $pid"
+        else
+            echo "Ownership: EXTERNAL"
+            rm -f "$DEV_DIR/runner.pid"
+        fi
+    else
+        echo "Ownership: EXTERNAL"
+    fi
 else
     echo "Runner: NOT RUNNING"
-fi
-
-if [[ -f "$DEV_DIR/runner.pid" ]]; then
-    echo "PID: $(cat "$DEV_DIR/runner.pid")"
 fi
 
 echo

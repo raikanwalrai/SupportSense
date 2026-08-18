@@ -2,21 +2,39 @@ experiment:
   name: baseline_tfidf_logistic_regression
   random_state: 42
   primary_metric: macro_f1
-
 data:
   train_path: data/processed/train.csv
   validation_path: data/processed/validation.csv
-
 features:
   type: tfidf
   ngram_range:
-    - 1
-    - 2
+  - 1
+  - 2
   min_df: 2
   max_df: 0.95
   sublinear_tf: true
-
 model:
   type: logistic_regression
   max_iter: 1000
   random_state: 42
+ray:
+  profiles:
+    smoke:
+      max_iter: 20
+      candidates:
+      - C: 1.0
+        class_weight: null
+    full:
+      max_iter: 1000
+      candidates:
+      - C: 0.5
+        class_weight: null
+      - C: 1.0
+        class_weight: null
+      - C: 1.0
+        class_weight: balanced
+      - C: 2.0
+        class_weight: null
+  execution:
+    num_cpus: 2
+    max_concurrent_experiments: 1

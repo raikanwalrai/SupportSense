@@ -68,3 +68,6 @@ mlruns/
 airflow/.env
 .dev/
 mlartifacts/
+
+# Local MLflow database backups
+mlflow.db.backup-*

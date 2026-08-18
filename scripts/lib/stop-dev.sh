@@ -22,6 +22,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$ROOT_DIR/scripts/lib/dev-config.sh"
 AIRFLOW_DIR="$ROOT_DIR/airflow"
 DEV_DIR="$ROOT_DIR/.dev"
 
@@ -43,18 +44,19 @@ echo "[1/3] Stopping MLflow..."
 if [[ -f "$MLFLOW_PID_FILE" ]]; then
     pid="$(cat "$MLFLOW_PID_FILE" 2>/dev/null || true)"
 
-    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+    if supportsense_process_matches "$pid" ".venv/bin/mlflow server"; then
         kill "$pid" 2>/dev/null || true
         echo "      MLflow stopped (PID $pid)."
+        rm -f "$MLFLOW_PID_FILE"
     else
-        echo "      MLflow process is not running."
+        echo "      MLflow PID is not a SupportSense-owned process."
+        echo "      Leaving MLflow running."
+        rm -f "$MLFLOW_PID_FILE"
     fi
-
-    rm -f "$MLFLOW_PID_FILE"
 else
     echo "      No SupportSense MLflow PID recorded."
+    echo "      Any externally managed MLflow is left untouched."
 fi
-
 echo
 
 # ------------------------------------------------------------
@@ -66,18 +68,19 @@ echo "[2/3] Stopping SupportSense Runner..."
 if [[ -f "$RUNNER_PID_FILE" ]]; then
     pid="$(cat "$RUNNER_PID_FILE" 2>/dev/null || true)"
 
-    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+    if supportsense_process_matches "$pid" "services.runner:app"; then
         kill "$pid" 2>/dev/null || true
         echo "      Runner stopped (PID $pid)."
+        rm -f "$RUNNER_PID_FILE"
     else
-        echo "      Runner process is not running."
+        echo "      Runner PID is not a SupportSense-owned process."
+        echo "      Leaving Runner running."
+        rm -f "$RUNNER_PID_FILE"
     fi
-
-    rm -f "$RUNNER_PID_FILE"
 else
     echo "      No SupportSense Runner PID recorded."
+    echo "      Any externally managed Runner is left untouched."
 fi
-
 echo
 
 # ------------------------------------------------------------

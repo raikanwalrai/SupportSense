@@ -23,11 +23,16 @@ try:
     from ray import tune as ray_tune
 except ImportError:
     ray_tune = None
+
 import torch
 import torch.nn as nn
 from mlflow.models import infer_signature
 from torch.optim import Adam
 
+from src.config.deep_learning_config import (
+    get_training_profile,
+    load_deep_learning_config,
+)
 from src.models.deep_learning.loaders import build_dataloaders
 from src.models.deep_learning.model import SupportSenseTextClassifier
 from src.models.deep_learning.reproducibility import set_seed
@@ -289,19 +294,6 @@ def train(
                 step=epoch + 1,
             )
 
-            # Report epoch-level metrics to Ray Tune when
-            # this training run is executed inside a Ray trial.
-            if use_ray and ray_tune is not None:
-                ray_tune.report(
-                    {
-                        "epoch": epoch + 1,
-                        "train_loss": train_loss,
-                        "train_accuracy": train_accuracy,
-                        "validation_loss": validation_loss,
-                        "validation_accuracy": validation_accuracy,
-                    }
-                )
-
             print()
             print(f"Epoch {epoch + 1}/{epochs}")
 
@@ -409,7 +401,14 @@ def train(
         print("Checkpoint          :", checkpoint_path)
         print("MLflow Run ID       :", run.info.run_id)
 
-    return model, history
+    return {
+           "model": model,
+           "history": history,
+           "run_id": run.info.run_id,
+           "checkpoint_path": checkpoint_path,
+           "best_epoch": best_epoch,
+           "best_validation_loss": best_validation_loss,
+        }
 
 
 def parse_args():
@@ -420,45 +419,53 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--profile",
+        type=str,
+        default="full",
+        choices=["smoke", "full"],
+        help="Deep-learning configuration profile.",
+    )
+
+    parser.add_argument(
         "--epochs",
         type=int,
-        default=3,
+        default=None,
     )
 
     parser.add_argument(
         "--batch-size",
         type=int,
-        default=32,
+        default=None,
     )
 
     parser.add_argument(
         "--learning-rate",
         type=float,
-        default=0.001,
+        default=None,
     )
 
     parser.add_argument(
         "--embedding-dim",
         type=int,
-        default=64,
+        default=None,
     )
 
     parser.add_argument(
         "--max-vocab-size",
         type=int,
-        default=2500,
+        default=None,
     )
 
     parser.add_argument(
         "--max-length",
         type=int,
-        default=48,
+        default=None,
     )
 
     parser.add_argument(
         "--seed",
         type=int,
-        default=42,
+        default=None,
     )
 
     parser.add_argument(
@@ -471,19 +478,19 @@ def parse_args():
     parser.add_argument(
 	    "--patience",
 	    type=int,
-	    default=3,
+	    default=None,
     )
 
     parser.add_argument(
         "--dropout",
         type=float,
-        default=0.0,
+        default=None,
     )
 
     parser.add_argument(
         "--checkpoint-path",
         type=str,
-        default="models/deep_learning/best_model.pt",
+        default=None,
     )
 
     return parser.parse_args()
@@ -493,16 +500,67 @@ if __name__ == "__main__":
 
     args = parse_args()
 
+    config = load_deep_learning_config()
+
+    profile = get_training_profile(
+        config,
+        args.profile,
+    )
+
     train(
-        epochs=args.epochs,
-        batch_size=args.batch_size,
-        learning_rate=args.learning_rate,
-        embedding_dim=args.embedding_dim,
-        max_vocab_size=args.max_vocab_size,
-        max_length=args.max_length,
-        seed=args.seed,
-        device=args.device,
-        patience=args.patience,
-        dropout=args.dropout,
-        checkpoint_path=args.checkpoint_path,
+        epochs=(
+            args.epochs
+            if args.epochs is not None
+            else profile["epochs"]
+        ),
+        batch_size=(
+            args.batch_size
+            if args.batch_size is not None
+            else profile["batch_size"]
+        ),
+        learning_rate=(
+            args.learning_rate
+            if args.learning_rate is not None
+            else profile["learning_rate"]
+        ),
+        embedding_dim=(
+            args.embedding_dim
+            if args.embedding_dim is not None
+            else profile["embedding_dim"]
+        ),
+        max_vocab_size=(
+            args.max_vocab_size
+            if args.max_vocab_size is not None
+            else profile["max_vocab_size"]
+        ),
+        max_length=(
+            args.max_length
+            if args.max_length is not None
+            else profile["max_length"]
+        ),
+        seed=(
+            args.seed
+            if args.seed is not None
+            else profile["seed"]
+        ),
+        device=(
+            args.device
+            if args.device is not None
+            else profile["device"]
+        ),
+        patience=(
+            args.patience
+            if args.patience is not None
+            else profile["patience"]
+        ),
+        dropout=(
+            args.dropout
+            if args.dropout is not None
+            else profile["dropout"]
+        ),
+        checkpoint_path=(
+            args.checkpoint_path
+            if args.checkpoint_path is not None
+            else profile["checkpoint_path"]
+        ),
     )

@@ -32,11 +32,9 @@
 set -uo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$ROOT_DIR/scripts/lib/dev-config.sh"
 AIRFLOW_DIR="$ROOT_DIR/airflow"
 
-MLFLOW_URL="http://127.0.0.1:5000"
-RUNNER_URL="http://127.0.0.1:8000"
-AIRFLOW_URL="http://127.0.0.1:18080"
 
 FAILURES=0
 
@@ -103,10 +101,81 @@ fi
 echo
 
 # ------------------------------------------------------------
+# Deep Learning / Ray Tune
+# ------------------------------------------------------------
+
+echo "===== 3. DEEP LEARNING / RAY TUNE ====="
+
+if python - <<'PYTHON'
+import inspect
+import subprocess
+
+import torch
+import ray
+from ray import tune
+
+from src.models.deep_learning.model import (
+    SupportSenseTextClassifier,
+)
+from src.models.deep_learning.train import train
+
+print("torch       :", torch.__version__)
+print("ray         :", ray.__version__)
+print("ray.tune    :", "available")
+
+signature = inspect.signature(train)
+
+required_parameters = {
+    "epochs",
+    "batch_size",
+    "learning_rate",
+    "embedding_dim",
+    "dropout",
+    "patience",
+    "use_ray",
+}
+
+missing = required_parameters - set(signature.parameters)
+
+if missing:
+    raise RuntimeError(
+        f"Missing train() parameters: {sorted(missing)}"
+    )
+
+print("train() API :", "Sprint 6 parameters available")
+print("DL model    :", "importable")
+
+compile_result = subprocess.run(
+    [
+        "python",
+        "-m",
+        "compileall",
+        "-q",
+        "src/models/deep_learning",
+    ],
+    check=False,
+)
+
+if compile_result.returncode != 0:
+    raise RuntimeError(
+        "Deep-learning module compilation failed."
+    )
+
+print("DL compile  :", "PASS")
+PYTHON
+then
+    pass "Deep-learning and Ray Tune integration"
+else
+    fail "Deep-learning and Ray Tune integration"
+fi
+
+echo
+
+# ------------------------------------------------------------
 # pip check
 # ------------------------------------------------------------
 
-echo "===== 3. DEPENDENCY CONSISTENCY ====="
+echo "===== 4. DEPENDENCY CONSISTENCY ====="
 
 if pip check; then
     pass "pip check"
@@ -120,7 +189,7 @@ echo
 # DVC
 # ------------------------------------------------------------
 
-echo "===== 4. DVC ====="
+echo "===== 5. DVC ====="
 
 if dvc status; then
     pass "DVC pipeline/data state"
@@ -134,7 +203,7 @@ echo
 # MLflow
 # ------------------------------------------------------------
 
-echo "===== 5. MLFLOW ====="
+echo "===== 6. MLFLOW ====="
 
 if curl -sf "$MLFLOW_URL/version"; then
     echo
@@ -149,7 +218,7 @@ echo
 # Runner
 # ------------------------------------------------------------
 
-echo "===== 6. SUPPORTSENSE RUNNER ====="
+echo "===== 7. SUPPORTSENSE RUNNER ====="
 
 if curl -sf "$RUNNER_URL/health"; then
     echo
@@ -164,7 +233,7 @@ echo
 # Airflow health
 # ------------------------------------------------------------
 
-echo "===== 7. AIRFLOW HEALTH ====="
+echo "===== 8. AIRFLOW HEALTH ====="
 
 if curl -sf "$AIRFLOW_URL/api/v2/monitor/health"; then
     echo
@@ -179,7 +248,7 @@ echo
 # Airflow DAG
 # ------------------------------------------------------------
 
-echo "===== 8. AIRFLOW DAG ====="
+echo "===== 9. AIRFLOW DAG ====="
 
 if [[ -f "$AIRFLOW_DIR/docker-compose.yaml" ]]; then
     cd "$AIRFLOW_DIR"
@@ -202,10 +271,10 @@ echo
 # Full test suite
 # ------------------------------------------------------------
 
-echo "===== 9. FULL PYTEST SUITE ====="
+echo "===== 10. FULL PYTEST SUITE ====="
 echo
-echo "This may take several minutes because Ray experiments are"
-echo "included in the test suite."
+echo "Runs the complete automated test suite, including"
+echo "the lightweight Ray smoke integration tests."
 echo
 
 cd "$ROOT_DIR"

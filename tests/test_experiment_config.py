@@ -69,3 +69,24 @@ def test_missing_experiment_key_raises_error():
         match="Missing experiment configuration keys",
     ):
         validate_experiment_config(config)
+def test_ray_execution_configuration_is_valid():
+    config = load_experiment_config(CONFIG_PATH)
+
+    validate_experiment_config(config)
+
+    execution = config["ray"]["execution"]
+
+    assert execution["num_cpus"] == 2
+    assert execution["max_concurrent_experiments"] == 1
+
+
+def test_missing_ray_execution_configuration_raises_error():
+    config = load_experiment_config(CONFIG_PATH)
+
+    del config["ray"]["execution"]
+
+    with pytest.raises(
+        ValueError,
+        match="Missing ray.execution configuration",
+    ):
+        validate_experiment_config(config)

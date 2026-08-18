@@ -1,3 +1,5 @@
+import pytest
+
 from pathlib import Path
 
 from src.models.baseline import (
@@ -12,6 +14,16 @@ TRAIN_PATH = Path("data/processed/train.csv")
 VALIDATION_PATH = Path("data/processed/validation.csv")
 
 
+@pytest.fixture(scope="module")
+def baseline_result():
+    """Run the real baseline once for this test module."""
+
+    return run_baseline(
+        train_path=TRAIN_PATH,
+        validation_path=VALIDATION_PATH,
+    )
+
+
 def test_create_baseline_model():
     model = create_baseline_model()
 
@@ -19,11 +31,8 @@ def test_create_baseline_model():
     assert model.random_state == 42
 
 
-def test_baseline_training_produces_fitted_model():
-    result = run_baseline(
-        train_path=TRAIN_PATH,
-        validation_path=VALIDATION_PATH,
-    )
+def test_baseline_training_produces_fitted_model(baseline_result):
+    result = baseline_result
 
     model = result["model"]
 
@@ -31,11 +40,8 @@ def test_baseline_training_produces_fitted_model():
     assert len(model.classes_) == 77
 
 
-def test_baseline_feature_shapes_match():
-    result = run_baseline(
-        train_path=TRAIN_PATH,
-        validation_path=VALIDATION_PATH,
-    )
+def test_baseline_feature_shapes_match(baseline_result):
+    result = baseline_result
 
     train_shape = result["train_shape"]
     validation_shape = result["validation_shape"]
@@ -45,11 +51,8 @@ def test_baseline_feature_shapes_match():
     assert train_shape[1] == validation_shape[1]
 
 
-def test_baseline_metrics_are_valid():
-    result = run_baseline(
-        train_path=TRAIN_PATH,
-        validation_path=VALIDATION_PATH,
-    )
+def test_baseline_metrics_are_valid(baseline_result):
+    result = baseline_result
 
     metrics = result["metrics"]
 
@@ -58,11 +61,8 @@ def test_baseline_metrics_are_valid():
     assert 0.0 <= metrics["weighted_f1"] <= 1.0
 
 
-def test_baseline_performance_meets_initial_target():
-    result = run_baseline(
-        train_path=TRAIN_PATH,
-        validation_path=VALIDATION_PATH,
-    )
+def test_baseline_performance_meets_initial_target(baseline_result):
+    result = baseline_result
 
     metrics = result["metrics"]
 

@@ -34,6 +34,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$ROOT_DIR/scripts/lib/dev-config.sh"
 AIRFLOW_DIR="$ROOT_DIR/airflow"
 DEV_DIR="$ROOT_DIR/.dev"
 
@@ -43,9 +44,6 @@ RUNNER_PID_FILE="$DEV_DIR/runner.pid"
 MLFLOW_LOG="$DEV_DIR/mlflow.log"
 RUNNER_LOG="$DEV_DIR/runner.log"
 
-MLFLOW_URL="http://127.0.0.1:5000"
-RUNNER_URL="http://127.0.0.1:8000"
-AIRFLOW_URL="http://127.0.0.1:18080"
 
 mkdir -p "$DEV_DIR"
 
@@ -101,11 +99,24 @@ echo "[1/3] Starting MLflow..."
 
 if curl -sf "$MLFLOW_URL/version" >/dev/null 2>&1; then
     echo "      MLflow is already running."
+
+    if [[ -f "$MLFLOW_PID_FILE" ]]; then
+        pid="$(cat "$MLFLOW_PID_FILE" 2>/dev/null || true)"
+
+        if supportsense_process_matches "$pid" ".venv/bin/mlflow server"; then
+            echo "      Ownership: SupportSense."
+        else
+            echo "      Ownership: External."
+            rm -f "$MLFLOW_PID_FILE"
+        fi
+    else
+        echo "      Ownership: External/pre-existing."
+    fi
 else
     if [[ -f "$MLFLOW_PID_FILE" ]]; then
         old_pid="$(cat "$MLFLOW_PID_FILE" 2>/dev/null || true)"
 
-        if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
+        if supportsense_process_matches "$old_pid" ".venv/bin/mlflow server"; then
             echo "      MLflow process already exists (PID $old_pid)."
         else
             rm -f "$MLFLOW_PID_FILE"
@@ -120,11 +131,13 @@ else
             --port 5000 \
             --backend-store-uri "sqlite:///$ROOT_DIR/mlflow.db" \
             --default-artifact-root "$ROOT_DIR/mlruns" \
+            --artifacts-destination "$ROOT_DIR/mlartifacts" \
             > "$MLFLOW_LOG" 2>&1 &
 
         echo $! > "$MLFLOW_PID_FILE"
 
         echo "      MLflow started (PID $(cat "$MLFLOW_PID_FILE"))."
+        echo "      Ownership: SupportSense."
         echo "      Log: $MLFLOW_LOG"
     fi
 fi
@@ -156,11 +169,24 @@ echo "[2/3] Starting SupportSense Runner..."
 
 if curl -sf "$RUNNER_URL/health" >/dev/null 2>&1; then
     echo "      Runner is already running."
+
+    if [[ -f "$RUNNER_PID_FILE" ]]; then
+        pid="$(cat "$RUNNER_PID_FILE" 2>/dev/null || true)"
+
+        if supportsense_process_matches "$pid" "services.runner:app"; then
+            echo "      Ownership: SupportSense."
+        else
+            echo "      Ownership: External."
+            rm -f "$RUNNER_PID_FILE"
+        fi
+    else
+        echo "      Ownership: External/pre-existing."
+    fi
 else
     if [[ -f "$RUNNER_PID_FILE" ]]; then
         old_pid="$(cat "$RUNNER_PID_FILE" 2>/dev/null || true)"
 
-        if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
+        if supportsense_process_matches "$old_pid" "services.runner:app"; then
             echo "      Runner process already exists (PID $old_pid)."
         else
             rm -f "$RUNNER_PID_FILE"
@@ -178,6 +204,7 @@ else
         echo $! > "$RUNNER_PID_FILE"
 
         echo "      Runner started (PID $(cat "$RUNNER_PID_FILE"))."
+        echo "      Ownership: SupportSense."
         echo "      Log: $RUNNER_LOG"
     fi
 fi

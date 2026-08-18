@@ -382,6 +382,16 @@ def evaluate(
         "PASS: Test evaluation completed "
         "and logged to MLflow"
     )
+    return {
+        "source_run_id": run_id,
+        "evaluation_run_id": run.info.run_id,
+        "accuracy": accuracy,
+        "macro_precision": macro_precision,
+        "macro_recall": macro_recall,
+        "macro_f1": macro_f1,
+        "weighted_f1": weighted_f1,
+    }
+
 
 
 def parse_args():
