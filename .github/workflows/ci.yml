@@ -105,6 +105,44 @@ jobs:
         run: |
           dvc repro
 
+      - name: Start MLflow tracking server
+        env:
+          MLFLOW_TRACKING_URI: http://127.0.0.1:5000
+        run: |
+          mkdir -p .ci/mlruns .ci/mlartifacts
+          nohup mlflow server \
+            --host 127.0.0.1 \
+            --port 5000 \
+            --backend-store-uri "sqlite:///$(pwd)/.ci/mlflow.db" \
+            --default-artifact-root "$(pwd)/.ci/mlruns" \
+            --artifacts-destination "$(pwd)/.ci/mlartifacts" \
+            > .ci/mlflow.log 2>&1 &
+
+          for i in {1..30}; do
+            if curl -sf http://127.0.0.1:5000/version >/dev/null 2>&1; then
+              echo "MLflow health: OK"
+              break
+            fi
+
+            if [ "$i" -eq 30 ]; then
+              echo "ERROR: MLflow did not become healthy."
+              cat .ci/mlflow.log
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+      - name: Verify MLflow environment
+        env:
+          MLFLOW_TRACKING_URI: http://127.0.0.1:5000
+        run: |
+          echo "MLFLOW_TRACKING_URI=$MLFLOW_TRACKING_URI"
+          curl -sf "$MLFLOW_TRACKING_URI/version"
+          echo
+
       - name: Run test suite
+        env:
+          MLFLOW_TRACKING_URI: http://127.0.0.1:5000
         run: |
           python -m pytest -q
