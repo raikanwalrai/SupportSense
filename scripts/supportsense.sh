@@ -107,6 +107,9 @@ Commands:
     validate
         Validate dependencies, DVC, services and tests.
 
+    ci
+        Monitor GitHub Actions CI for the current branch.
+
     help
         Show this help message.
 
@@ -148,6 +151,11 @@ case "${1:-help}" in
 
     validate)
         exec "$LIB_DIR/validate-dev.sh"
+        ;;
+
+    ci)
+        shift
+        exec "$LIB_DIR/ci-dev.sh" "${1:-watch}"
         ;;
 
     help|-h|--help)
