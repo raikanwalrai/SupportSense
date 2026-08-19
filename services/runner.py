@@ -3,8 +3,9 @@ import subprocess
 import time
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 app = FastAPI(
@@ -14,6 +15,14 @@ app = FastAPI(
 )
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
+UI_DIR = PROJECT_DIR / "ui"
+
+
+app.mount(
+    "/ui",
+    StaticFiles(directory=UI_DIR),
+    name="ui",
+)
 
 
 class TicketPredictionRequest(BaseModel):
@@ -74,6 +83,20 @@ async def prometheus_middleware(request: Request, call_next):
     return response
 
 
+@app.get("/")
+def ui() -> FileResponse:
+    """Serve the SupportSense web interface."""
+    index_path = UI_DIR / "index.html"
+
+    if not index_path.exists():
+        raise HTTPException(
+            status_code=500,
+            detail="SupportSense UI is not available.",
+        )
+
+    return FileResponse(index_path)
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     """Return runner health status."""
@@ -87,6 +110,8 @@ def health() -> dict[str, str]:
 def predict(request: TicketPredictionRequest) -> dict[str, object]:
     """Predict the category of a support ticket using the active ML model."""
     from src.inference.ml import predict_ticket
+    from src.decision.actions import get_action
+    from src.monitoring.event_store import record_prediction
 
     if not request.ticket.strip():
         raise HTTPException(
@@ -120,6 +145,20 @@ def predict(request: TicketPredictionRequest) -> dict[str, object]:
         ) from exc
 
     model_name = result.model.model_name
+    action = get_action(result.prediction)
+    event_id = record_prediction(
+        ticket=request.ticket,
+        predicted_intent=result.prediction,
+        model_name=result.model.model_name,
+        experiment_name=result.model.experiment_name,
+        run_id=result.model.run_id,
+        model_id=result.model.model_id,
+        model_status=result.model.status,
+        action_id=action.action_id,
+        action_name=action.action_name,
+        risk=action.risk,
+        requires_approval=action.requires_approval,
+    )
 
     PREDICTIONS_TOTAL.labels(
         model=model_name,
@@ -135,7 +174,16 @@ def predict(request: TicketPredictionRequest) -> dict[str, object]:
     return {
         "status": "success",
         "ticket": request.ticket,
+        "event_id": event_id,
         "prediction": result.prediction,
+        "decision": {
+            "intent": action.intent,
+            "action_id": action.action_id,
+            "action_name": action.action_name,
+            "risk": action.risk,
+            "requires_approval": action.requires_approval,
+            "simulation_message": action.simulation_message,
+        },
         "model": {
             "experiment_name": result.model.experiment_name,
             "run_id": result.model.run_id,
@@ -143,6 +191,129 @@ def predict(request: TicketPredictionRequest) -> dict[str, object]:
             "model_name": result.model.model_name,
             "status": result.model.status,
         },
+    }
+
+
+class ActionSimulationRequest(BaseModel):
+    """Request to simulate a registered SupportSense action."""
+
+    action_id: str
+
+
+@app.post("/action/simulate")
+def simulate_action(request: ActionSimulationRequest) -> dict[str, object]:
+    """Safely simulate a registered operational action."""
+    from src.decision.actions import ACTION_REGISTRY
+
+    action = next(
+        (item for item in ACTION_REGISTRY.values()
+         if item.action_id == request.action_id),
+        None,
+    )
+
+    if action is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unknown action ID: {request.action_id}",
+        )
+
+    if action.requires_approval:
+        return {
+            "status": "approval_required",
+            "action_id": action.action_id,
+            "action_name": action.action_name,
+            "risk": action.risk,
+            "requires_approval": True,
+            "message": action.simulation_message,
+        }
+
+    return {
+        "status": "simulated",
+        "action_id": action.action_id,
+        "action_name": action.action_name,
+        "risk": action.risk,
+        "requires_approval": False,
+        "message": action.simulation_message,
+    }
+
+
+
+@app.get("/predictions")
+def predictions(limit: int = 50) -> dict[str, object]:
+    """Return recent SupportSense prediction events."""
+    from src.monitoring.event_store import list_predictions
+
+    try:
+        events = list_predictions(limit=limit)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return {
+        "status": "success",
+        "count": len(events),
+        "predictions": events,
+    }
+
+
+@app.get("/intents")
+def intents() -> dict[str, object]:
+    """Return the supported SupportSense classification intents."""
+    from src.features.tfidf import load_split
+    from src.config.experiment_config import load_experiment_config
+
+    config = load_experiment_config("configs/experiments.yaml")
+    df = load_split(config["data"]["train_path"])
+
+    labels = sorted(df["category"].dropna().unique())
+
+    return {
+        "status": "success",
+        "count": len(labels),
+        "intents": labels,
+    }
+
+
+class PredictionFeedbackRequest(BaseModel):
+    """Human feedback for a SupportSense prediction."""
+
+    event_id: str
+    actual_intent: str
+    outcome: str | None = None
+
+
+@app.post("/feedback")
+def record_feedback(
+    request: PredictionFeedbackRequest,
+) -> dict[str, object]:
+    """Record human feedback for a prediction event."""
+    from src.monitoring.event_store import update_prediction_outcome
+
+    try:
+        updated = update_prediction_outcome(
+            event_id=request.event_id,
+            actual_intent=request.actual_intent,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    if updated is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Prediction event not found: {request.event_id}",
+        )
+
+    return {
+        "status": "recorded",
+        "event_id": updated["event_id"],
+        "predicted_intent": updated["predicted_intent"],
+        "actual_intent": updated["actual_intent"],
+        "prediction_correct": updated["prediction_correct"],
     }
 
 

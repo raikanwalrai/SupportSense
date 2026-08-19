@@ -383,3 +383,44 @@ def test_predict_inference_error_records_error_metric():
         'status="error"'
         in body
     )
+
+
+def test_predictions_returns_recent_events():
+    fake_events = [
+        {
+            "event_id": "event-123",
+            "timestamp": "2026-08-19T12:00:00+00:00",
+            "ticket": "I forgot my password",
+            "predicted_intent": "passcode_forgotten",
+            "actual_intent": "passcode_forgotten",
+            "prediction_correct": 1,
+            "action_id": "RESET_PASSCODE",
+            "action_name": "Reset passcode",
+            "risk": "MEDIUM",
+        }
+    ]
+
+    with patch(
+        "src.monitoring.event_store.list_predictions",
+        return_value=fake_events,
+    ) as mock_list:
+        response = client.get("/predictions?limit=10")
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["status"] == "success"
+    assert body["count"] == 1
+    assert body["predictions"] == fake_events
+
+    mock_list.assert_called_once_with(limit=10)
+
+
+def test_predictions_rejects_invalid_limit():
+    response = client.get("/predictions?limit=0")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "limit must be greater than zero"
+    )

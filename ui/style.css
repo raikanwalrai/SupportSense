@@ -1,0 +1,278 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #1f2937;
+}
+
+.container {
+    width: min(900px, 92%);
+    margin: 40px auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header h1 {
+    margin-bottom: 6px;
+}
+
+.header p {
+    margin-top: 0;
+    color: #6b7280;
+}
+
+.card {
+    background: white;
+    padding: 24px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 14px;
+    margin: 12px 0 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+button {
+    padding: 12px 20px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.prediction {
+    padding: 20px;
+    margin: 15px 0;
+    border-radius: 8px;
+    background: #eef6ff;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.model-info {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 10px;
+}
+
+.model-info dt {
+    font-weight: bold;
+}
+
+.model-info dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.latency {
+    margin-top: 20px;
+    color: #6b7280;
+}
+
+.status {
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.status.healthy {
+    background: #dcfce7;
+}
+
+.status.unhealthy {
+    background: #fee2e2;
+}
+
+.status.unknown {
+    background: #e5e7eb;
+}
+
+.error {
+    color: #b91c1c;
+    margin-top: 12px;
+}
+
+.hidden {
+    display: none;
+}
+
+.action-controls {
+    margin-top: 18px;
+}
+
+.action-button {
+    padding: 11px 18px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.action-button:hover {
+    opacity: 0.9;
+}
+
+.action-result {
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+.action-result.success {
+    color: #166534;
+}
+
+.action-result.warning {
+    color: #92400e;
+}
+
+.hidden {
+    display: none;
+}
+
+.feedback-controls {
+    margin-top: 12px;
+}
+
+.feedback-controls label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.feedback-controls select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.feedback-button {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.feedback-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.feedback-result {
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+.feedback-result.success {
+    color: #166534;
+}
+
+.feedback-result.warning {
+    color: #92400e;
+}
+
+.history-controls {
+    margin-top: 12px;
+    margin-bottom: 14px;
+}
+
+.history-button {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.history-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.prediction-history {
+    margin-top: 12px;
+}
+
+.history-empty {
+    color: #64748b;
+    font-style: italic;
+}
+
+.history-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: #f8fafc;
+}
+
+.history-item-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.history-intent {
+    font-weight: 700;
+}
+
+.history-time {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.history-ticket {
+    margin-bottom: 10px;
+}
+
+.history-details {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 4px 12px;
+    font-size: 14px;
+}
+
+.history-details strong {
+    font-weight: 600;
+}
+
+.history-correct {
+    font-weight: 700;
+}
+
+.history-correct.yes {
+    color: #166534;
+}
+
+.history-correct.no {
+    color: #b91c1c;
+}
+
+.history-correct.pending {
+    color: #92400e;
+}

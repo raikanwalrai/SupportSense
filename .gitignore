@@ -71,3 +71,6 @@ mlartifacts/
 
 # Local MLflow database backups
 mlflow.db.backup-*
+
+# Local SupportSense event store
+supportsense_events.db

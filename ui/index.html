@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>SupportSense</title>
+    <link rel="stylesheet" href="/ui/style.css">
+</head>
+
+<body>
+    <main class="container">
+
+        <header class="header">
+            <div>
+                <h1>SupportSense</h1>
+                <p>AI-powered support ticket classification</p>
+            </div>
+
+            <span id="health-status" class="status unknown">
+                Checking...
+            </span>
+        </header>
+
+        <section class="card">
+            <h2>Support Ticket</h2>
+
+            <textarea
+                id="ticket"
+                placeholder="Describe the customer's issue..."
+                rows="6"
+            ></textarea>
+
+            <button id="predict-button">
+                Predict Ticket
+            </button>
+
+            <p id="error-message" class="error hidden"></p>
+        </section>
+
+        <section id="result-card" class="card hidden">
+
+            <h2>Prediction</h2>
+
+            <div class="prediction">
+                <span id="prediction"></span>
+            </div>
+
+            <h3>Decision & Action</h3>
+
+            <dl class="model-info">
+                <dt>Intent</dt>
+                <dd id="decision-intent">-</dd>
+
+                <dt>Action</dt>
+                <dd id="action-name">-</dd>
+
+                <dt>Action ID</dt>
+                <dd id="action-id">-</dd>
+
+                <dt>Risk</dt>
+                <dd id="risk">-</dd>
+
+                <dt>Approval Required</dt>
+                <dd id="approval-required">-</dd>
+            </dl>
+
+            <div class="latency">
+                <strong id="simulation-message">-</strong>
+            </div>
+
+            <div class="action-controls">
+                <button id="action-button" class="action-button hidden">
+                    Simulate Action
+                </button>
+                <p id="action-result" class="action-result hidden"></p>
+            </div>
+
+            <h3>Human Feedback</h3>
+
+            <div class="feedback-controls">
+                <label for="actual-intent">
+                    Actual Intent
+                </label>
+
+                <select id="actual-intent">
+                    <option value="">
+                        Select the actual intent...
+                    </option>
+                </select>
+
+                <button
+                    id="feedback-button"
+                    class="feedback-button"
+                    disabled
+                >
+                    Submit Feedback
+                </button>
+
+                <p
+                    id="feedback-result"
+                    class="feedback-result hidden"
+                ></p>
+            </div>
+
+            <h3>Prediction History</h3>
+
+            <div class="history-controls">
+                <button
+                    id="refresh-history-button"
+                    class="history-button"
+                >
+                    Refresh History
+                </button>
+            </div>
+
+            <div
+                id="history-result"
+                class="history-result hidden"
+            ></div>
+
+            <div
+                id="prediction-history"
+                class="prediction-history"
+            >
+                <p class="history-empty">
+                    No prediction history loaded.
+                </p>
+            </div>
+
+            <h3>Model Information</h3>
+
+            <dl class="model-info">
+                <dt>Experiment</dt>
+                <dd id="experiment-name">-</dd>
+
+                <dt>Run ID</dt>
+                <dd id="run-id">-</dd>
+
+                <dt>Model ID</dt>
+                <dd id="model-id">-</dd>
+
+                <dt>Model</dt>
+                <dd id="model-name">-</dd>
+
+                <dt>Status</dt>
+                <dd id="model-status">-</dd>
+            </dl>
+
+            <div class="latency">
+                Prediction completed in
+                <strong id="latency">-</strong>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="/ui/app.js"></script>
+</body>
+</html>
