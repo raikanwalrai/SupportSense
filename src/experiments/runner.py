@@ -2,7 +2,10 @@ import os
 from pathlib import Path
 from typing import Any
 
+from sklearn.pipeline import Pipeline
+
 import mlflow
+import mlflow.sklearn
 
 from src.config.experiment_config import (
     load_experiment_config,
@@ -106,6 +109,13 @@ def run_experiment(
             train_df["category"],
         )
 
+        pipeline = Pipeline(
+            steps=[
+                ("tfidf", vectorizer),
+                ("classifier", model),
+            ]
+        )
+
         metrics = evaluate_model(
             model,
             X_validation,
@@ -118,6 +128,21 @@ def run_experiment(
                 "macro_f1": metrics["macro_f1"],
                 "weighted_f1": metrics["weighted_f1"],
             }
+        )
+
+        mlflow.sklearn.log_model(
+            pipeline,
+            name="model",
+        )
+
+        mlflow.set_tag(
+            "model_stage",
+            "candidate",
+        )
+
+        mlflow.set_tag(
+            "model_framework",
+            "sklearn_pipeline",
         )
 
         mlflow.set_tag(
@@ -141,6 +166,7 @@ def run_experiment(
         "train_shape": X_train.shape,
         "validation_shape": X_validation.shape,
         "num_classes": len(model.classes_),
+        "model_artifact": "model",
         "mlflow_experiment": MLFLOW_EXPERIMENT_NAME,
         "mlflow_run_id": run_id,
     }

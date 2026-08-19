@@ -198,3 +198,188 @@ def test_request_duration_metric_is_recorded():
     assert "supportsense_http_request_duration_seconds_bucket" in body
     assert "supportsense_http_request_duration_seconds_count" in body
     assert "supportsense_http_request_duration_seconds_sum" in body
+
+
+
+def test_predict_success():
+    from src.inference.ml import MLPrediction, MLModelInfo
+
+    fake_prediction = MLPrediction(
+        prediction="terminate_account",
+        model=MLModelInfo(
+            experiment_name="SupportSense Baseline",
+            run_id="run-test",
+            model_id="model-test",
+            model_name="model",
+            status="READY",
+        ),
+    )
+
+    with patch(
+        "src.inference.ml.predict_ticket",
+        return_value=fake_prediction,
+    ):
+        response = client.post(
+            "/predict",
+            json={
+                "ticket": "I cannot login to my account",
+            },
+        )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["status"] == "success"
+    assert body["ticket"] == "I cannot login to my account"
+    assert body["prediction"] == "terminate_account"
+
+    assert body["model"] == {
+        "experiment_name": "SupportSense Baseline",
+        "run_id": "run-test",
+        "model_id": "model-test",
+        "model_name": "model",
+        "status": "READY",
+    }
+
+
+def test_predict_empty_text():
+    response = client.post(
+        "/predict",
+        json={
+            "ticket": "",
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert response.json()["detail"] == (
+        "Ticket text must not be empty."
+    )
+
+
+def test_predict_inference_failure():
+    with patch(
+        "src.inference.ml.predict_ticket",
+        side_effect=RuntimeError(
+            "MLflow model unavailable."
+        ),
+    ):
+        response = client.post(
+            "/predict",
+            json={
+                "ticket": "I cannot login to my account",
+            },
+        )
+
+    assert response.status_code == 500
+
+    assert response.json()["detail"] == (
+        "ML inference failed: MLflow model unavailable."
+    )
+
+
+def test_predict_missing_ticket():
+    response = client.post(
+        "/predict",
+        json={},
+    )
+
+    assert response.status_code == 422
+
+
+def test_predict_success_records_prediction_metrics():
+    from src.inference.ml import MLPrediction, MLModelInfo
+
+    fake_prediction = MLPrediction(
+        prediction="terminate_account",
+        model=MLModelInfo(
+            experiment_name="SupportSense Baseline",
+            run_id="run-metrics",
+            model_id="model-metrics",
+            model_name="model",
+            status="READY",
+        ),
+    )
+
+    with patch(
+        "src.inference.ml.predict_ticket",
+        return_value=fake_prediction,
+    ):
+        response = client.post(
+            "/predict",
+            json={
+                "ticket": "I cannot login to my account",
+            },
+        )
+
+    assert response.status_code == 200
+
+    metrics_response = client.get("/metrics")
+
+    assert metrics_response.status_code == 200
+
+    body = metrics_response.text
+
+    assert (
+        'supportsense_predictions_total'
+        in body
+    )
+
+    assert (
+        'model="model"'
+        in body
+    )
+
+    assert (
+        'status="success"'
+        in body
+    )
+
+    assert (
+        'supportsense_prediction_duration_seconds'
+        in body
+    )
+
+    assert (
+        'supportsense_prediction_duration_seconds_count'
+        in body
+    )
+
+
+def test_predict_inference_error_records_error_metric():
+    with patch(
+        "src.inference.ml.predict_ticket",
+        side_effect=RuntimeError(
+            "MLflow model unavailable."
+        ),
+    ):
+        response = client.post(
+            "/predict",
+            json={
+                "ticket": "I cannot login to my account",
+            },
+        )
+
+    assert response.status_code == 500
+
+    metrics_response = client.get("/metrics")
+
+    assert metrics_response.status_code == 200
+
+    body = metrics_response.text
+
+    assert (
+        'supportsense_predictions_total'
+        in body
+    )
+
+    assert (
+        'model="unknown"'
+        in body
+    )
+
+    assert (
+        'status="error"'
+        in body
+    )

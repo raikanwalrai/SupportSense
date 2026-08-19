@@ -3,6 +3,7 @@ import subprocess
 import time
 
 from fastapi import FastAPI, HTTPException, Request
+from pydantic import BaseModel
 from fastapi.responses import Response
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
@@ -15,6 +16,14 @@ app = FastAPI(
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 
 
+class TicketPredictionRequest(BaseModel):
+    """Request payload for ML ticket inference."""
+
+    ticket: str
+
+
+
+
 HTTP_REQUESTS_TOTAL = Counter(
     "supportsense_http_requests_total",
     "Total number of HTTP requests handled by the SupportSense Runner.",
@@ -25,6 +34,18 @@ HTTP_REQUEST_DURATION_SECONDS = Histogram(
     "supportsense_http_request_duration_seconds",
     "HTTP request duration in seconds.",
     ["method", "endpoint"],
+)
+
+PREDICTIONS_TOTAL = Counter(
+    "supportsense_predictions_total",
+    "Total number of support ticket predictions.",
+    ["model", "status"],
+)
+
+PREDICTION_DURATION_SECONDS = Histogram(
+    "supportsense_prediction_duration_seconds",
+    "Support ticket prediction duration in seconds.",
+    ["model"],
 )
 
 
@@ -59,6 +80,69 @@ def health() -> dict[str, str]:
     return {
         "status": "ok",
         "service": "supportsense-runner",
+    }
+
+
+@app.post("/predict")
+def predict(request: TicketPredictionRequest) -> dict[str, object]:
+    """Predict the category of a support ticket using the active ML model."""
+    from src.inference.ml import predict_ticket
+
+    if not request.ticket.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Ticket text must not be empty.",
+        )
+
+    start_time = time.perf_counter()
+
+    try:
+        result = predict_ticket(request.ticket)
+    except ValueError as exc:
+        PREDICTIONS_TOTAL.labels(
+            model="unknown",
+            status="validation_error",
+        ).inc()
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+    except Exception as exc:
+        PREDICTIONS_TOTAL.labels(
+            model="unknown",
+            status="error",
+        ).inc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"ML inference failed: {exc}",
+        ) from exc
+
+    model_name = result.model.model_name
+
+    PREDICTIONS_TOTAL.labels(
+        model=model_name,
+        status="success",
+    ).inc()
+
+    PREDICTION_DURATION_SECONDS.labels(
+        model=model_name,
+    ).observe(
+        time.perf_counter() - start_time
+    )
+
+    return {
+        "status": "success",
+        "ticket": request.ticket,
+        "prediction": result.prediction,
+        "model": {
+            "experiment_name": result.model.experiment_name,
+            "run_id": result.model.run_id,
+            "model_id": result.model.model_id,
+            "model_name": result.model.model_name,
+            "status": result.model.status,
+        },
     }
 
 

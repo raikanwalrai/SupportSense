@@ -9,18 +9,20 @@
 #
 # Checks:
 #
-#   1. Python environment
-#   2. Core package imports
-#   3. pip dependency consistency
-#   4. DVC status
-#   5. MLflow health
-#   6. Runner health
-#   7. Runner health
-#   8. Prometheus health and Runner scrape
-#   9. Grafana health
-#   10. Airflow health
-#   11. Airflow DAG visibility
-#   12. Full pytest suite
+# Validation sections:
+#   Python environment
+#   Core package imports
+#   Deep Learning / Ray Tune
+#   Dependency consistency
+#   DVC
+#   MLflow health
+#   Runner health
+#   ML model artifact and inference
+#   Prometheus health and Runner scrape
+#   Grafana health
+#   Airflow health
+#   Airflow DAG visibility
+#   Full pytest suite
 #
 # This is intentionally more expensive than "status".
 #
@@ -233,10 +235,114 @@ fi
 echo
 
 # ------------------------------------------------------------
+# ML model / inference
+# ------------------------------------------------------------
+
+echo "===== 8. ML MODEL / INFERENCE ====="
+
+if MLFLOW_TRACKING_URI="$MLFLOW_TRACKING_URI" python - <<'PYTHON'
+import os
+
+import mlflow
+from mlflow import MlflowClient
+
+tracking_uri = os.environ["MLFLOW_TRACKING_URI"]
+
+mlflow.set_tracking_uri(tracking_uri)
+
+client = MlflowClient(
+    tracking_uri=tracking_uri
+)
+
+experiment = client.get_experiment_by_name(
+    "SupportSense Baseline"
+)
+
+if experiment is None:
+    raise RuntimeError(
+        "SupportSense Baseline MLflow experiment not found"
+    )
+
+runs = client.search_runs(
+    experiment_ids=[experiment.experiment_id],
+    filter_string="attributes.status = 'FINISHED'",
+    order_by=["attributes.start_time DESC"],
+    max_results=20,
+)
+
+if not runs:
+    raise RuntimeError(
+        "No completed SupportSense Baseline MLflow run found"
+    )
+
+run = None
+logged_model = None
+
+for candidate_run in runs:
+    candidate_models = client.search_logged_models(
+        experiment_ids=[experiment.experiment_id],
+        filter_string=(
+            f"source_run_id = '{candidate_run.info.run_id}'"
+        ),
+    )
+
+    ready_models = [
+        model
+        for model in candidate_models
+        if model.status == "READY"
+    ]
+
+    if ready_models:
+        run = candidate_run
+        logged_model = ready_models[0]
+        break
+
+if run is None or logged_model is None:
+    raise RuntimeError(
+        "No READY SupportSense MLflow model found "
+        "in the latest 20 completed runs"
+    )
+
+if logged_model.status != "READY":
+    raise RuntimeError(
+        f"MLflow logged model is not READY: "
+        f"{logged_model.status}"
+    )
+
+model_uri = f"models:/{logged_model.model_id}"
+
+model = mlflow.sklearn.load_model(model_uri)
+
+prediction = model.predict(
+    ["I cannot login to my account"]
+)
+
+if len(prediction) != 1 or not prediction[0]:
+    raise RuntimeError(
+        "ML model inference returned an invalid prediction"
+    )
+
+print("Experiment :", experiment.name)
+print("Run ID     :", run.info.run_id)
+print("Model ID   :", logged_model.model_id)
+print("Model      :", logged_model.name)
+print("Status     :", logged_model.status)
+print("Test ticket: I cannot login to my account")
+print("Prediction :", prediction[0])
+PYTHON
+then
+    pass "ML model artifact and inference"
+else
+    fail "ML model artifact and inference"
+fi
+
+echo
+
+# ------------------------------------------------------------
 # Prometheus
 # ------------------------------------------------------------
 
-echo "===== 8. PROMETHEUS ====="
+echo "===== 9. PROMETHEUS ====="
 
 if curl -sf "$PROMETHEUS_URL/-/healthy"; then
     echo
@@ -270,7 +376,7 @@ echo
 # Grafana
 # ------------------------------------------------------------
 
-echo "===== 9. GRAFANA ====="
+echo "===== 10. GRAFANA ====="
 
 if curl -sf "$GRAFANA_URL/api/health"; then
     echo
@@ -285,7 +391,7 @@ echo
 # Airflow health
 # ------------------------------------------------------------
 
-echo "===== 10. AIRFLOW HEALTH ====="
+echo "===== 11. AIRFLOW HEALTH ====="
 
 if curl -sf "$AIRFLOW_URL/api/v2/monitor/health"; then
     echo
@@ -300,7 +406,7 @@ echo
 # Airflow DAG
 # ------------------------------------------------------------
 
-echo "===== 11. AIRFLOW DAG ====="
+echo "===== 12. AIRFLOW DAG ====="
 
 if [[ -f "$AIRFLOW_DIR/docker-compose.yaml" ]]; then
     cd "$AIRFLOW_DIR"
@@ -323,7 +429,7 @@ echo
 # Full test suite
 # ------------------------------------------------------------
 
-echo "===== 12. FULL PYTEST SUITE ====="
+echo "===== 13. FULL PYTEST SUITE ====="
 echo
 echo "Runs the complete automated test suite, including"
 echo "the lightweight Ray smoke integration tests."

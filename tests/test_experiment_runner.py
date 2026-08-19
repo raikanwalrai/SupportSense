@@ -1,11 +1,17 @@
-import pytest
-
+import os
 from pathlib import Path
+
+import pytest
 
 from src.experiments.runner import run_experiment
 
 
 CONFIG_PATH = Path("configs/experiments.yaml")
+
+os.environ.setdefault(
+    "MLFLOW_TRACKING_URI",
+    "http://127.0.0.1:5000",
+)
 
 
 @pytest.fixture(scope="module")
