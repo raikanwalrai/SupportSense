@@ -110,6 +110,9 @@ Commands:
     ci
         Monitor GitHub Actions CI for the current branch.
 
+    stream
+        Show Kafka and Spark streaming observability.
+
     help
         Show this help message.
 
@@ -156,6 +159,10 @@ case "${1:-help}" in
     ci)
         shift
         exec "$LIB_DIR/ci-dev.sh" "${1:-watch}"
+        ;;
+
+    stream)
+        exec "$LIB_DIR/stream-dev.sh"
         ;;
 
     git)
