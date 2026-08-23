@@ -29,6 +29,7 @@ class TicketPredictionRequest(BaseModel):
     """Request payload for ML ticket inference."""
 
     ticket: str
+    source_event_id: str | None = None
 
 
 
@@ -148,6 +149,7 @@ def predict(request: TicketPredictionRequest) -> dict[str, object]:
     action = get_action(result.prediction)
     event_id = record_prediction(
         ticket=request.ticket,
+        source_event_id=request.source_event_id,
         predicted_intent=result.prediction,
         model_name=result.model.model_name,
         experiment_name=result.model.experiment_name,
@@ -175,6 +177,7 @@ def predict(request: TicketPredictionRequest) -> dict[str, object]:
         "status": "success",
         "ticket": request.ticket,
         "event_id": event_id,
+        "source_event_id": request.source_event_id,
         "prediction": result.prediction,
         "decision": {
             "intent": action.intent,

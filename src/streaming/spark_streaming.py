@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any
 
 import requests
@@ -21,6 +22,13 @@ DEFAULT_LOG_LEVEL = os.getenv(
     "WARN",
 ).upper()
 
+DEFAULT_HEALTH_FILE = Path(
+    os.getenv(
+        "SUPPORTSENSE_SPARK_HEALTH_FILE",
+        "/tmp/supportsense-spark-streaming.health",
+    )
+)
+
 
 def create_spark_session() -> SparkSession:
     """Create the local Spark session for SupportSense streaming."""
@@ -36,6 +44,49 @@ def create_spark_session() -> SparkSession:
         )
         .getOrCreate()
     )
+
+
+def write_health_status(
+    status: str,
+    batch_id: int | None = None,
+    tickets: int | None = None,
+    error: str | None = None,
+) -> None:
+    """Write the current Spark streaming health state."""
+
+    DEFAULT_HEALTH_FILE.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    lines = [
+        f"status={status}",
+        f"pid={os.getpid()}",
+        f"timestamp={__import__('datetime').datetime.now().astimezone().isoformat()}",
+    ]
+
+    if batch_id is not None:
+        lines.append(f"batch_id={batch_id}")
+
+    if tickets is not None:
+        lines.append(f"tickets={tickets}")
+
+    if error:
+        lines.append(f"error={error}")
+
+    DEFAULT_HEALTH_FILE.write_text(
+        "\n".join(lines) + "\n",
+        encoding="utf-8",
+    )
+
+
+def remove_health_status() -> None:
+    """Remove the Spark health file when streaming stops."""
+
+    try:
+        DEFAULT_HEALTH_FILE.unlink()
+    except FileNotFoundError:
+        pass
 
 
 def read_kafka_stream(
@@ -92,13 +143,19 @@ def parse_ticket_events(df: DataFrame) -> DataFrame:
 
 def predict_ticket(
     ticket: str,
+    source_event_id: str | None = None,
     runner_url: str = DEFAULT_RUNNER_URL,
 ) -> dict[str, Any]:
-    """Send one ticket to the existing SupportSense Runner."""
+    """Send one ticket and its Kafka event ID to the SupportSense Runner."""
+
+    payload = {
+        "ticket": ticket,
+        "source_event_id": source_event_id,
+    }
 
     response = requests.post(
         f"{runner_url.rstrip('/')}/predict",
-        json={"ticket": ticket},
+        json=payload,
         timeout=30,
     )
 
@@ -127,6 +184,12 @@ def process_batch(
         .collect()
     )
 
+    write_health_status(
+        status="healthy",
+        batch_id=batch_id,
+        tickets=len(rows),
+    )
+
     if not rows:
         return
 
@@ -140,6 +203,7 @@ def process_batch(
         try:
             result = predict_ticket(
                 ticket=row["ticket"],
+                source_event_id=row["event_id"],
                 runner_url=runner_url,
             )
 
@@ -157,6 +221,13 @@ def process_batch(
             )
 
         except Exception as exc:
+            write_health_status(
+                status="degraded",
+                batch_id=batch_id,
+                tickets=len(rows),
+                error=f"{type(exc).__name__}: {exc}",
+            )
+
             print(
                 f"[ERROR] "
                 f"event_id={row['event_id']} | "
@@ -168,6 +239,8 @@ def process_batch(
 def main() -> None:
     spark = create_spark_session()
     spark.sparkContext.setLogLevel(DEFAULT_LOG_LEVEL)
+
+    write_health_status(status="starting")
 
     try:
         kafka_stream = read_kafka_stream(spark)
@@ -190,6 +263,8 @@ def main() -> None:
             .start()
         )
 
+        write_health_status(status="healthy")
+
         print()
         print("=" * 70)
         print(" SupportSense: Kafka → Spark → Runner")
@@ -198,6 +273,7 @@ def main() -> None:
         print(f" Topic       : {DEFAULT_TOPIC}")
         print(f" Runner      : {DEFAULT_RUNNER_URL}")
         print(f" Log level   : {DEFAULT_LOG_LEVEL}")
+        print(f" Health file : {DEFAULT_HEALTH_FILE}")
         print(" Waiting for NEW tickets...")
         print("=" * 70)
         print()
@@ -208,7 +284,15 @@ def main() -> None:
         print()
         print("Stopping Spark streaming...")
 
+    except Exception as exc:
+        write_health_status(
+            status="failed",
+            error=f"{type(exc).__name__}: {exc}",
+        )
+        raise
+
     finally:
+        remove_health_status()
         spark.stop()
 
 

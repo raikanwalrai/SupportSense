@@ -38,6 +38,7 @@ def initialize_event_store() -> None:
             """
             CREATE TABLE IF NOT EXISTS prediction_events (
                 event_id TEXT PRIMARY KEY,
+                source_event_id TEXT,
                 timestamp TEXT NOT NULL,
 
                 ticket TEXT NOT NULL,
@@ -62,12 +63,26 @@ def initialize_event_store() -> None:
             """
         )
 
+        columns = {
+            row["name"]
+            for row in connection.execute(
+                "PRAGMA table_info(prediction_events)"
+            ).fetchall()
+        }
+
+        if "source_event_id" not in columns:
+            connection.execute(
+                "ALTER TABLE prediction_events "
+                "ADD COLUMN source_event_id TEXT"
+            )
+
         connection.commit()
 
 
 def record_prediction(
     *,
     ticket: str,
+    source_event_id: str | None = None,
     predicted_intent: str,
     model_name: str,
     experiment_name: str,
@@ -96,6 +111,7 @@ def record_prediction(
             """
             INSERT INTO prediction_events (
                 event_id,
+                source_event_id,
                 timestamp,
                 ticket,
                 predicted_intent,
@@ -112,10 +128,11 @@ def record_prediction(
                 prediction_correct,
                 outcome
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 event_id,
+                source_event_id,
                 timestamp,
                 ticket,
                 predicted_intent,
@@ -153,6 +170,7 @@ def list_predictions(limit: int = 50) -> list[dict[str, Any]]:
             """
             SELECT
                 event_id,
+                source_event_id,
                 timestamp,
                 ticket,
                 predicted_intent,
