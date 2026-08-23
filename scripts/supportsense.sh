@@ -158,6 +158,29 @@ case "${1:-help}" in
         exec "$LIB_DIR/ci-dev.sh" "${1:-watch}"
         ;;
 
+    git)
+        shift
+
+        if [[ "$#" -eq 0 ]]; then
+            exec "$LIB_DIR/git-dev.sh" help
+        fi
+
+        command="$1"
+        shift
+
+        exec "$LIB_DIR/git-dev.sh" "$command" "$@"
+        ;;
+
+    commit)
+        shift
+        exec "$LIB_DIR/git-dev.sh" commit "$@"
+        ;;
+
+    push)
+        shift
+        exec "$LIB_DIR/git-dev.sh" push "$@"
+        ;;
+
     help|-h|--help)
         usage
         ;;

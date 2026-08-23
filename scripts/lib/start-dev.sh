@@ -95,7 +95,7 @@ fi
 # Python / MLflow
 # ------------------------------------------------------------
 
-echo "[1/5] Starting MLflow..."
+echo "[1/7] Starting MLflow..."
 
 if curl -sf "$MLFLOW_URL/version" >/dev/null 2>&1; then
     echo "      MLflow is already running."
@@ -165,7 +165,7 @@ echo
 # SupportSense Runner
 # ------------------------------------------------------------
 
-echo "[2/5] Starting SupportSense Runner..."
+echo "[2/7] Starting SupportSense Runner..."
 
 if curl -sf "$RUNNER_URL/health" >/dev/null 2>&1; then
     echo "      Runner is already running."
@@ -229,10 +229,121 @@ done
 echo
 
 # ------------------------------------------------------------
+# Kafka
+# ------------------------------------------------------------
+
+echo "[3/7] Starting Kafka..."
+
+if [[ ! -f "$KAFKA_COMPOSE_FILE" ]]; then
+    echo "ERROR: Kafka Compose file not found:"
+    echo "       $KAFKA_COMPOSE_FILE"
+    exit 1
+fi
+
+KAFKA_DIR="$(dirname "$KAFKA_COMPOSE_FILE")"
+
+cd "$KAFKA_DIR"
+
+docker compose up -d
+
+echo "      Kafka Docker Compose started."
+
+for i in {1..30}; do
+    if docker exec "$KAFKA_CONTAINER_NAME" \
+        /opt/kafka/bin/kafka-topics.sh \
+        --bootstrap-server "$KAFKA_BOOTSTRAP_SERVERS" \
+        --list >/dev/null 2>&1; then
+        echo "      Kafka health: OK"
+        break
+    fi
+
+    if [[ "$i" -eq 30 ]]; then
+        echo "ERROR: Kafka did not become healthy."
+        echo "Check:"
+        echo "    cd $KAFKA_DIR"
+        echo "    docker compose ps"
+        echo "    docker compose logs --tail=100"
+        exit 1
+    fi
+
+    sleep 2
+done
+
+echo "      Kafka topic: $KAFKA_TOPIC"
+
+echo
+
+# ------------------------------------------------------------
+# Spark Structured Streaming
+# ------------------------------------------------------------
+
+echo "[4/7] Starting Spark Streaming..."
+
+mkdir -p "$DEV_DIR"
+
+# Remove stale health information before startup.
+rm -f "$SPARK_HEALTH_FILE"
+
+if [[ -f "$SPARK_PID_FILE" ]]; then
+    old_pid="$(cat "$SPARK_PID_FILE" 2>/dev/null || true)"
+
+    if supportsense_process_matches "$old_pid" "src.streaming.spark_streaming"; then
+        echo "      Spark Streaming process already exists (PID $old_pid)."
+    else
+        rm -f "$SPARK_PID_FILE"
+    fi
+fi
+
+if [[ ! -f "$SPARK_PID_FILE" ]]; then
+    cd "$ROOT_DIR"
+
+    nohup env \
+        SUPPORTSENSE_RUNNER_URL="$SPARK_RUNNER_URL" \
+        SUPPORTSENSE_SPARK_HEALTH_FILE="$SPARK_HEALTH_FILE" \
+        python -m src.streaming.spark_streaming \
+        > "$SPARK_LOG_FILE" 2>&1 &
+
+    echo $! > "$SPARK_PID_FILE"
+
+    echo "      Spark Streaming started (PID $(cat "$SPARK_PID_FILE"))."
+    echo "      Ownership: SupportSense."
+    echo "      Log: $SPARK_LOG_FILE"
+fi
+
+for i in {1..60}; do
+    if [[ -f "$SPARK_HEALTH_FILE" ]] &&
+       grep -q '^status=healthy$' "$SPARK_HEALTH_FILE"; then
+        echo "      Spark Streaming health: OK"
+        break
+    fi
+
+    if [[ -f "$SPARK_HEALTH_FILE" ]] &&
+       grep -q '^status=failed$' "$SPARK_HEALTH_FILE"; then
+        echo "ERROR: Spark Streaming failed during startup."
+        echo "Check:"
+        echo "    $SPARK_LOG_FILE"
+        cat "$SPARK_HEALTH_FILE"
+        exit 1
+    fi
+
+    if [[ "$i" -eq 60 ]]; then
+        echo "ERROR: Spark Streaming did not become healthy."
+        echo "Check:"
+        echo "    $SPARK_LOG_FILE"
+        echo "    $SPARK_HEALTH_FILE"
+        exit 1
+    fi
+
+    sleep 1
+done
+
+echo
+
+# ------------------------------------------------------------
 # Prometheus
 # ------------------------------------------------------------
 
-echo "[3/5] Starting Prometheus..."
+echo "[5/7] Starting Prometheus..."
 
 PROMETHEUS_DIR="$ROOT_DIR/monitoring/prometheus"
 
@@ -273,7 +384,7 @@ echo
 # Grafana
 # ------------------------------------------------------------
 
-echo "[4/5] Starting Grafana..."
+echo "[6/7] Starting Grafana..."
 
 GRAFANA_DIR="$ROOT_DIR/monitoring/grafana"
 
@@ -314,7 +425,7 @@ echo
 # Airflow
 # ------------------------------------------------------------
 
-echo "[5/5] Starting Airflow Docker Compose stack..."
+echo "[7/7] Starting Airflow Docker Compose stack..."
 
 if [[ ! -f "$AIRFLOW_DIR/docker-compose.yaml" ]]; then
     echo "ERROR: Airflow Compose file not found:"
