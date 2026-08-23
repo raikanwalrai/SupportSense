@@ -228,26 +228,6 @@ case "$COMMAND" in
         git_push "$@"
         ;;
 
-    add)
-        git_passthrough add "$@"
-        ;;
-
-    status)
-        git_passthrough status "$@"
-        ;;
-
-    diff)
-        git_passthrough diff "$@"
-        ;;
-
-    log)
-        git_passthrough log "$@"
-        ;;
-
-    branch)
-        git_passthrough branch "$@"
-        ;;
-
     help|-h|--help)
         cat <<'USAGE'
 SupportSense Git Helper
@@ -259,8 +239,10 @@ Usage:
 
 Examples:
     ./scripts/supportsense.sh git status
-    ./scripts/supportsense.sh git diff
+    ./scripts/supportsense.sh git diff --check
     ./scripts/supportsense.sh git log -5 --oneline
+    ./scripts/supportsense.sh git show --stat HEAD
+    ./scripts/supportsense.sh git remote -v
 
     ./scripts/supportsense.sh commit -m "Commit message"
     ./scripts/supportsense.sh push origin feature/sprint-7-observability
@@ -268,11 +250,13 @@ Examples:
 Safety:
     commit and push operations automatically run the
     SupportSense Git safety checks before Git executes.
+
+    All other Git commands are passed through unchanged.
 USAGE
         ;;
 
     *)
-        error "Unsupported Git operation: $COMMAND. Use './scripts/supportsense.sh git <command>' for general Git commands."
+        git_passthrough "$COMMAND" "$@"
         ;;
 
 esac
