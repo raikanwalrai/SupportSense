@@ -2,162 +2,626 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-    <title>SupportSense</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupportSense — Support Operations Center</title>
     <link rel="stylesheet" href="/ui/style.css">
 </head>
 
 <body>
-    <main class="container">
 
-        <header class="header">
+<div class="app-shell">
+
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-mark">S</div>
             <div>
                 <h1>SupportSense</h1>
-                <p>AI-powered support ticket classification</p>
+                <p>Support Operations Center</p>
+            </div>
+        </div>
+
+        <div class="system-state">
+            <span class="status-dot healthy"></span>
+            <div>
+                <strong>System Operational</strong>
+                <span>ML prediction services available</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="main-nav" aria-label="SupportSense navigation">
+
+        <button class="nav-tab active" data-tab="live">
+            <span class="nav-icon">●</span>
+            Live Operations
+        </button>
+
+        <button class="nav-tab" data-tab="manual">
+            <span class="nav-icon">✎</span>
+            Manual Prediction
+        </button>
+
+        <button class="nav-tab" data-tab="history">
+            <span class="nav-icon">▤</span>
+            Prediction History
+        </button>
+
+        <button class="nav-tab" data-tab="review">
+            <span class="nav-icon">!</span>
+            Human Review
+        </button>
+
+        <button class="nav-tab" data-tab="system">
+            <span class="nav-icon">◌</span>
+            System
+        </button>
+
+    </nav>
+
+    <main class="main-content">
+
+        <!-- LIVE OPERATIONS -->
+
+        <section id="tab-live" class="tab-panel active">
+
+            <div class="page-heading">
+                <div>
+                    <span class="eyebrow">REAL-TIME OPERATIONS</span>
+                    <h2>Live Ticket Operations</h2>
+                    <p>
+                        Monitor tickets arriving through the Kafka → Spark →
+                        ML prediction path.
+                    </p>
+                </div>
+
+                <button id="live-refresh-button" class="secondary-button">
+                    Refresh Live Feed
+                </button>
             </div>
 
-            <span id="health-status" class="status unknown">
-                Checking...
-            </span>
-        </header>
+            <div class="pipeline-strip">
 
-        <section class="card">
-            <h2>Support Ticket</h2>
+                <div class="pipeline-step">
+                    <span class="pipeline-dot"></span>
 
-            <textarea
-                id="ticket"
-                placeholder="Describe the customer's issue..."
-                rows="6"
-            ></textarea>
+                    <div class="pipeline-visual kafka-visual">
+                        <span class="pipeline-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </div>
 
-            <button id="predict-button">
-                Predict Ticket
-            </button>
+                    <div class="pipeline-copy">
+                        <strong>Kafka</strong>
+                        <small>Event Source</small>
+                    </div>
+                </div>
 
-            <p id="error-message" class="error hidden"></p>
+                <span class="pipeline-arrow" aria-hidden="true">→</span>
+
+                <div class="pipeline-step">
+                    <span class="pipeline-dot"></span>
+
+                    <div class="pipeline-visual spark-visual">
+                        <span class="pipeline-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </div>
+
+                    <div class="pipeline-copy">
+                        <strong>Spark</strong>
+                        <small>Streaming</small>
+                    </div>
+                </div>
+
+                <span class="pipeline-arrow" aria-hidden="true">→</span>
+
+                <div class="pipeline-step">
+                    <span class="pipeline-dot"></span>
+
+                    <div class="pipeline-visual ml-visual">
+                        <span class="pipeline-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </div>
+
+                    <div class="pipeline-copy">
+                        <strong>ML Runner</strong>
+                        <small>Prediction</small>
+                    </div>
+                </div>
+
+                <span class="pipeline-arrow" aria-hidden="true">→</span>
+
+                <div class="pipeline-step">
+                    <span class="pipeline-dot"></span>
+
+                    <div class="pipeline-visual decision-visual">
+                        <span class="pipeline-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </div>
+
+                    <div class="pipeline-copy">
+                        <strong>Decision</strong>
+                        <small>Action</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="kpi-grid">
+
+                <div class="kpi-card">
+                    <span class="kpi-label">Live Predictions</span>
+                    <strong id="live-count">—</strong>
+                    <span class="kpi-meta">Recent streaming events</span>
+                </div>
+
+                <div class="kpi-card">
+                    <span class="kpi-label">Low Risk</span>
+                    <strong id="live-low-risk">—</strong>
+                    <span class="kpi-meta">Operationally low risk</span>
+                </div>
+
+                <div class="kpi-card">
+                    <span class="kpi-label">Human Review</span>
+                    <strong id="live-review-count">—</strong>
+                    <span class="kpi-meta">Approval required</span>
+                </div>
+
+                <div class="kpi-card">
+                    <span class="kpi-label">Model</span>
+                    <strong id="live-model-status">—</strong>
+                    <span class="kpi-meta">Current serving status</span>
+                </div>
+
+            </div>
+
+            <div class="section-header">
+                <div>
+                    <span class="eyebrow">EVENT STREAM</span>
+                    <h3>Recent Live Predictions</h3>
+                </div>
+
+                <span class="live-badge">
+                    <span class="status-dot healthy"></span>
+                    LIVE DATA
+                </span>
+            </div>
+
+            <div id="live-predictions" class="prediction-feed">
+
+                <div class="empty-state">
+                    <strong>No live predictions loaded</strong>
+                    <span>
+                        Refresh the feed to retrieve recent streaming events.
+                    </span>
+                </div>
+
+            </div>
+
         </section>
 
-        <section id="result-card" class="card hidden">
 
-            <h2>Prediction</h2>
+        <!-- MANUAL PREDICTION -->
 
-            <div class="prediction">
-                <span id="prediction"></span>
+        <section id="tab-manual" class="tab-panel">
+
+            <div class="page-heading">
+                <div>
+                    <span class="eyebrow">ANALYST WORKFLOW</span>
+                    <h2>Manual Ticket Prediction</h2>
+                    <p>
+                        Enter a support ticket and evaluate the SupportSense
+                        prediction and decision workflow.
+                    </p>
+                </div>
             </div>
 
-            <h3>Decision & Action</h3>
+            <div class="manual-layout">
 
-            <dl class="model-info">
-                <dt>Intent</dt>
-                <dd id="decision-intent">-</dd>
+                <section class="workspace-card">
 
-                <dt>Action</dt>
-                <dd id="action-name">-</dd>
+                    <div class="card-heading">
+                        <div>
+                            <span class="eyebrow">INPUT</span>
+                            <h3>Support Ticket</h3>
+                        </div>
 
-                <dt>Action ID</dt>
-                <dd id="action-id">-</dd>
+                        <span class="source-badge manual">MANUAL</span>
+                    </div>
 
-                <dt>Risk</dt>
-                <dd id="risk">-</dd>
+                    <textarea
+                        id="ticket-input"
+                        class="ticket-input"
+                        rows="7"
+                        placeholder="Describe the customer's support issue..."
+                    ></textarea>
 
-                <dt>Approval Required</dt>
-                <dd id="approval-required">-</dd>
-            </dl>
+                    <div class="input-footer">
 
-            <div class="latency">
-                <strong id="simulation-message">-</strong>
+                        <span class="helper-text">
+                            The ticket will be sent to the SupportSense
+                            prediction service.
+                        </span>
+
+                        <button id="predict-button" class="primary-button">
+                            Predict Ticket
+                        </button>
+
+                    </div>
+
+                    <div id="error-message" class="error hidden"></div>
+
+                </section>
+
+
+                <section id="result-card" class="workspace-card hidden">
+
+                    <div class="card-heading">
+                        <div>
+                            <span class="eyebrow">AI DECISION</span>
+                            <h3>Prediction Result</h3>
+                        </div>
+
+                        <span class="source-badge manual">MANUAL</span>
+                    </div>
+
+                    <div class="result-intent">
+                        <span>Predicted Intent</span>
+                        <strong id="predicted-intent">—</strong>
+                    </div>
+
+                    <div class="decision-grid">
+
+                        <div class="decision-item">
+                            <span>Risk</span>
+                            <strong id="risk-level">—</strong>
+                        </div>
+
+                        <div class="decision-item">
+                            <span>Approval</span>
+                            <strong id="approval-required">—</strong>
+                        </div>
+
+                        <div class="decision-item">
+                            <span>Action</span>
+                            <strong id="action-name">—</strong>
+                        </div>
+
+                        <div class="decision-item">
+                            <span>Model</span>
+                            <strong id="model-status">—</strong>
+                        </div>
+
+                    </div>
+
+                    <div class="action-controls">
+
+                        <button
+                            id="action-button"
+                            class="action-button hidden"
+                        >
+                            Simulate Action
+                        </button>
+
+                        <div
+                            id="action-result"
+                            class="action-result hidden"
+                        ></div>
+
+                    </div>
+
+                    <div class="feedback-section">
+
+                        <div class="card-heading compact">
+                            <div>
+                                <span class="eyebrow">HUMAN FEEDBACK</span>
+                                <h4>Was the prediction correct?</h4>
+                            </div>
+                        </div>
+
+                        <div class="feedback-controls">
+
+                            <label for="actual-intent">
+                                Actual intent
+                            </label>
+
+                            <select id="actual-intent">
+                                <option value="">Select intent...</option>
+                            </select>
+
+                            <button
+                                id="feedback-button"
+                                class="secondary-button"
+                                disabled
+                            >
+                                Submit Feedback
+                            </button>
+
+                        </div>
+
+                        <div
+                            id="feedback-result"
+                            class="feedback-result hidden"
+                        ></div>
+
+                    </div>
+
+                </section>
+
             </div>
 
-            <div class="action-controls">
-                <button id="action-button" class="action-button hidden">
-                    Simulate Action
-                </button>
-                <p id="action-result" class="action-result hidden"></p>
-            </div>
+        </section>
 
-            <h3>Human Feedback</h3>
 
-            <div class="feedback-controls">
-                <label for="actual-intent">
-                    Actual Intent
-                </label>
+        <!-- PREDICTION HISTORY -->
 
-                <select id="actual-intent">
-                    <option value="">
-                        Select the actual intent...
-                    </option>
-                </select>
+        <section id="tab-history" class="tab-panel">
 
-                <button
-                    id="feedback-button"
-                    class="feedback-button"
-                    disabled
-                >
-                    Submit Feedback
-                </button>
+            <div class="page-heading">
 
-                <p
-                    id="feedback-result"
-                    class="feedback-result hidden"
-                ></p>
-            </div>
+                <div>
+                    <span class="eyebrow">OPERATIONAL RECORD</span>
+                    <h2>Prediction History</h2>
+                    <p>
+                        Unified history of live and manually submitted
+                        predictions.
+                    </p>
+                </div>
 
-            <h3>Prediction History</h3>
-
-            <div class="history-controls">
-                <button
-                    id="refresh-history-button"
-                    class="history-button"
-                >
+                <button id="history-button" class="secondary-button">
                     Refresh History
                 </button>
+
             </div>
 
-            <div
-                id="history-result"
-                class="history-result hidden"
-            ></div>
+            <div class="history-filters">
 
-            <div
-                id="prediction-history"
-                class="prediction-history"
-            >
-                <p class="history-empty">
-                    No prediction history loaded.
-                </p>
+                <button class="filter-button active" data-history-filter="all">
+                    All
+                </button>
+
+                <button class="filter-button" data-history-filter="live">
+                    Live
+                </button>
+
+                <button class="filter-button" data-history-filter="manual">
+                    Manual
+                </button>
+
+                <button class="filter-button" data-history-filter="review">
+                    Human Review
+                </button>
+
             </div>
 
-            <h3>Model Information</h3>
+            <div id="prediction-history" class="prediction-history">
 
-            <dl class="model-info">
-                <dt>Experiment</dt>
-                <dd id="experiment-name">-</dd>
+                <div class="empty-state">
+                    <strong>No prediction history loaded</strong>
+                    <span>
+                        Refresh history to retrieve recent predictions.
+                    </span>
+                </div>
 
-                <dt>Run ID</dt>
-                <dd id="run-id">-</dd>
-
-                <dt>Model ID</dt>
-                <dd id="model-id">-</dd>
-
-                <dt>Model</dt>
-                <dd id="model-name">-</dd>
-
-                <dt>Status</dt>
-                <dd id="model-status">-</dd>
-            </dl>
-
-            <div class="latency">
-                Prediction completed in
-                <strong id="latency">-</strong>
             </div>
+
+        </section>
+
+
+        <!-- HUMAN REVIEW -->
+
+        <section id="tab-review" class="tab-panel">
+
+            <div class="page-heading">
+
+                <div>
+                    <span class="eyebrow">HUMAN-IN-THE-LOOP</span>
+                    <h2>Human Review Queue</h2>
+                    <p>
+                        Predictions requiring explicit approval according to
+                        the current decision policy.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="review-banner">
+
+                <div class="review-icon">!</div>
+
+                <div>
+                    <strong id="review-total">
+                        No review items loaded
+                    </strong>
+
+                    <span>
+                        Review is driven by the existing
+                        requires_approval decision field.
+                    </span>
+                </div>
+
+            </div>
+
+            <div id="review-predictions" class="review-feed">
+
+                <div class="empty-state">
+                    <strong>No tickets currently require review</strong>
+                    <span>
+                        This view uses the existing prediction decision data.
+                    </span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SYSTEM -->
+
+        <section id="tab-system" class="tab-panel">
+
+            <div class="page-heading">
+
+                <div>
+                    <span class="eyebrow">PLATFORM STATUS</span>
+                    <h2>System Operations</h2>
+                    <p>
+                        High-level platform health for support operations.
+                        Detailed engineering observability remains in Grafana.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="system-grid">
+
+                <div class="system-card">
+                    <div class="system-card-visual runner">▶</div>
+                    <div class="system-card-content">
+                        <strong>SupportSense Runner</strong>
+                        <span id="runner-status">Checking...</span>
+                    </div>
+                </div>
+
+                <div class="system-card">
+                    <div class="system-card-visual kafka">↝</div>
+                    <div class="system-card-content">
+                        <strong>Kafka</strong>
+                        <span id="kafka-status">Checking...</span>
+                    </div>
+                </div>
+
+                <div class="system-card">
+                    <div class="system-card-visual spark">✦</div>
+                    <div class="system-card-content">
+                        <strong>Spark Streaming</strong>
+                        <span id="spark-status">Checking...</span>
+                    </div>
+                </div>
+
+                <div class="system-card">
+                    <div class="system-card-visual model">◆</div>
+                    <div class="system-card-content">
+                        <strong>ML Model</strong>
+                        <span id="system-model-status">Checking...</span>
+                    </div>
+                </div>
+
+                <a
+                    class="system-card system-card-link"
+                    href="http://127.0.0.1:9090"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <div class="system-card-visual prometheus">⌁</div>
+                    <div class="system-card-content">
+                        <strong>Prometheus</strong>
+                        <span>Engineering metrics</span>
+                        <small>Open →</small>
+                    </div>
+                </a>
+
+                <a
+                    class="system-card system-card-link"
+                    href="http://127.0.0.1:3000"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <div class="system-card-visual grafana">▥</div>
+                    <div class="system-card-content">
+                        <strong>Grafana</strong>
+                        <span>Engineering observability</span>
+                        <small>Open →</small>
+                    </div>
+                </a>
+
+                <a
+                    class="system-card system-card-link"
+                    href="http://127.0.0.1:18080"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <div class="system-card-visual airflow">◆</div>
+                    <div class="system-card-content">
+                        <strong>Airflow</strong>
+                        <span>Workflow orchestration</span>
+                        <small>Open →</small>
+                    </div>
+                </a>
+
+                <a
+                    class="system-card system-card-link"
+                    href="http://127.0.0.1:5000"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <div class="system-card-visual mlflow">M</div>
+                    <div class="system-card-content">
+                        <strong>MLflow</strong>
+                        <span>Experiment tracking</span>
+                        <small>Open →</small>
+                    </div>
+                </a>
+
+            </div>
+
+            <section class="workspace-card observability-card">
+
+                <span class="eyebrow">OBSERVABILITY BOUNDARY</span>
+
+                <h3>Support Operations vs Engineering Observability</h3>
+
+                <div class="boundary-grid">
+
+                    <div>
+                        <strong>SupportSense Operations</strong>
+                        <ul>
+                            <li>Live tickets</li>
+                            <li>AI decisions</li>
+                            <li>Risk and actions</li>
+                            <li>Human intervention</li>
+                            <li>Prediction history</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <strong>Grafana / Prometheus</strong>
+                        <ul>
+                            <li>Request rate</li>
+                            <li>Prediction throughput</li>
+                            <li>Latency</li>
+                            <li>Error rates</li>
+                            <li>Engineering trends</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+            </section>
 
         </section>
 
     </main>
 
-    <script src="/ui/app.js"></script>
+    <footer class="app-footer">
+        <span>SupportSense</span>
+        <span>Support Operations Center</span>
+        <span>ML-powered ticket intelligence</span>
+    </footer>
+
+</div>
+
+<script src="/ui/app.js"></script>
+
 </body>
 </html>
