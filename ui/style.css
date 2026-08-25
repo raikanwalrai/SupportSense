@@ -3324,3 +3324,2199 @@ body {
         font-size: 15px;
     }
 }
+
+/* ============================================================
+   SUPPORTSENSE OPERATIONS CONSOLE
+   Grafana-inspired dark observability theme
+   Visual-only override — no application behavior changes.
+   ============================================================ */
+
+:root {
+    --bg: #0b0f14;
+    --bg-soft: #10161d;
+
+    --panel: #151c24;
+    --panel-2: #11171e;
+
+    --border: #27313c;
+    --border-soft: #202a34;
+
+    --text: #e6edf3;
+    --muted: #8b98a7;
+    --muted-2: #687583;
+
+    --accent: #f2cc0c;
+    --accent-soft: rgba(242, 204, 12, 0.12);
+
+    --success: #3bd16f;
+    --success-soft: rgba(59, 209, 111, 0.12);
+
+    --warning: #f5a524;
+    --warning-soft: rgba(245, 165, 36, 0.12);
+
+    --danger: #ef5b5b;
+    --danger-soft: rgba(239, 91, 91, 0.12);
+
+    --shadow:
+        0 1px 2px rgba(0, 0, 0, 0.35),
+        0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+
+/* ------------------------------------------------------------
+   APPLICATION BACKGROUND
+   ------------------------------------------------------------ */
+
+body {
+    background:
+        radial-gradient(
+            circle at 85% 0%,
+            rgba(61, 139, 253, 0.08),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 10% 20%,
+            rgba(242, 204, 12, 0.035),
+            transparent 24%
+        ),
+        var(--bg);
+
+    color: var(--text);
+}
+
+
+/* ------------------------------------------------------------
+   TOP BAR
+   ------------------------------------------------------------ */
+
+.topbar {
+    background:
+        linear-gradient(
+            135deg,
+            #111820 0%,
+            #0d1218 100%
+        );
+
+    border-color: #26313c;
+
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.025),
+        0 10px 30px rgba(0,0,0,0.22);
+}
+
+.brand-mark {
+    background:
+        linear-gradient(
+            135deg,
+            #1e6fff,
+            #2563eb
+        );
+
+    box-shadow:
+        0 0 22px rgba(61, 139, 253, 0.22);
+}
+
+.brand p {
+    color: #82909e;
+}
+
+.system-state {
+    background: #0f151c;
+    border-color: #28343f;
+}
+
+
+/* ------------------------------------------------------------
+   NAVIGATION
+   ------------------------------------------------------------ */
+
+.main-nav {
+    background: #11171e;
+    border-color: #26313c;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.14);
+}
+
+.nav-tab {
+    color: #8b98a7;
+}
+
+.nav-tab:hover {
+    color: #e6edf3;
+    background: #19212a;
+}
+
+.nav-tab.active {
+    color: #0b0f14;
+    background: #f2cc0c;
+
+    box-shadow:
+        0 0 18px rgba(242, 204, 12, 0.18);
+}
+
+
+/* ------------------------------------------------------------
+   HEADINGS
+   ------------------------------------------------------------ */
+
+.section-heading h2,
+.page-heading h2,
+.section-header h3,
+.card-heading h3 {
+    color: #e6edf3;
+}
+
+.section-heading p,
+.page-heading p,
+.helper-text {
+    color: #84919f;
+}
+
+.eyebrow {
+    color: #f2cc0c;
+}
+
+
+/* ------------------------------------------------------------
+   PANELS / CARDS
+   ------------------------------------------------------------ */
+
+.kpi-card,
+.workspace-card,
+.prediction-card,
+.section-card,
+.panel-card {
+    background:
+        linear-gradient(
+            145deg,
+            #151c24,
+            #11171e
+        );
+
+    border-color: #27313c;
+
+    box-shadow:
+        0 1px 2px rgba(0,0,0,0.35),
+        0 8px 24px rgba(0,0,0,0.12);
+}
+
+.kpi-card:hover,
+.workspace-card:hover,
+.prediction-card:hover {
+    border-color: #354250;
+    background: #18212a;
+}
+
+
+/* ------------------------------------------------------------
+   KPI VALUES
+   ------------------------------------------------------------ */
+
+.kpi-label {
+    color: #82909e;
+}
+
+.kpi-value {
+    color: #f1f5f9;
+}
+
+.kpi-meta {
+    color: #687583;
+}
+
+.kpi-card::after {
+    background: rgba(242, 204, 12, 0.07);
+}
+
+
+/* ------------------------------------------------------------
+   PIPELINE
+   ------------------------------------------------------------ */
+
+.pipeline-visual {
+    background: #101821;
+    border-color: #293744;
+    color: #3d8bfd;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(61,139,253,0.025);
+}
+
+.pipeline-copy strong {
+    color: #e6edf3;
+}
+
+.pipeline-copy small {
+    color: #7e8b98;
+}
+
+.kafka-visual .pipeline-icon span {
+    border-color: #3d8bfd;
+    background: rgba(61,139,253,0.08);
+}
+
+
+/* ------------------------------------------------------------
+   LIVE / STATUS BADGES
+   ------------------------------------------------------------ */
+
+.live-badge,
+.source-badge,
+.status-badge {
+    background: #101821;
+    border-color: #2b3743;
+    color: #aeb9c5;
+}
+
+.live-badge .status-dot.healthy {
+    background: #3bd16f;
+}
+
+
+/* ------------------------------------------------------------
+   INPUTS
+   ------------------------------------------------------------ */
+
+textarea,
+select,
+input,
+.ticket-input {
+    background: #0d131a;
+    color: #e6edf3;
+
+    border-color: #2a3743;
+}
+
+textarea::placeholder,
+input::placeholder {
+    color: #5f6c79;
+}
+
+textarea:focus,
+select:focus,
+input:focus,
+.ticket-input:focus {
+    outline: none;
+
+    border-color: #3d8bfd;
+
+    box-shadow:
+        0 0 0 2px rgba(61,139,253,0.14);
+}
+
+
+/* ------------------------------------------------------------
+   BUTTONS
+   ------------------------------------------------------------ */
+
+.primary-button {
+    background: #f2cc0c;
+    color: #0b0f14;
+    border-color: #f2cc0c;
+
+    box-shadow:
+        0 4px 14px rgba(242,204,12,0.14);
+}
+
+.primary-button:hover {
+    background: #ffdb28;
+    border-color: #ffdb28;
+}
+
+.primary-button:disabled {
+    opacity: 0.55;
+}
+
+
+/* ------------------------------------------------------------
+   PREDICTION FEED
+   ------------------------------------------------------------ */
+
+.prediction-feed {
+    background: transparent;
+}
+
+.prediction-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.prediction-card::before {
+    content: "";
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    width: 2px;
+
+    background: #f2cc0c;
+}
+
+.prediction-card strong,
+.prediction-card h4 {
+    color: #e6edf3;
+}
+
+.prediction-card span,
+.prediction-card small {
+    color: #7f8c99;
+}
+
+
+/* ------------------------------------------------------------
+   RISK STATES
+   ------------------------------------------------------------ */
+
+.risk-low {
+    color: #3bd16f;
+}
+
+.risk-medium {
+    color: #f5a524;
+}
+
+.risk-high {
+    color: #ef5b5b;
+}
+
+
+/* ------------------------------------------------------------
+   EMPTY / SYSTEM STATES
+   ------------------------------------------------------------ */
+
+.empty-state {
+    background: #11171e;
+    border-color: #27313c;
+    color: #8b98a7;
+}
+
+.empty-state strong {
+    color: #dbe4ec;
+}
+
+
+/* ------------------------------------------------------------
+   TABLES / HISTORY
+   ------------------------------------------------------------ */
+
+table {
+    color: #dbe4ec;
+}
+
+th {
+    background: #10171e;
+    color: #8795a3;
+    border-color: #27313c;
+}
+
+td {
+    border-color: #202a34;
+}
+
+tr:hover td {
+    background: #161f28;
+}
+
+
+/* ------------------------------------------------------------
+   SCROLLBARS
+   ------------------------------------------------------------ */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #354250 #0d131a;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #0d131a;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #354250;
+    border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #465564;
+}
+
+
+/* ------------------------------------------------------------
+   SUBTLE OPERATIONS-CONSOLE EFFECT
+   ------------------------------------------------------------ */
+
+.status-dot.healthy {
+    box-shadow:
+        0 0 0 3px rgba(59,209,111,0.10),
+        0 0 12px rgba(59,209,111,0.35);
+}
+
+@media (max-width: 900px) {
+    .app-shell {
+        width: min(var(--max-width), calc(100% - 24px));
+    }
+
+    .main-nav {
+        overflow-x: auto;
+    }
+}
+
+/* ============================================================
+   SUPPORTSENSE DARK CONSOLE — FINAL VISUAL OVERRIDE
+   UI-only: no layout/application behavior changes.
+   ============================================================ */
+
+/* ---------- GLOBAL SURFACE ---------- */
+
+html,
+body {
+    background: #05080c !important;
+    color: #f4f7fb !important;
+}
+
+body {
+    font-size: 15px;
+}
+
+.app-shell,
+.page-shell,
+.main-content,
+main,
+.content,
+.container {
+    background: transparent !important;
+    color: #f4f7fb !important;
+}
+
+
+/* ---------- TYPOGRAPHY ---------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.section-heading h2,
+.page-section h2 {
+    color: #f5f7fa !important;
+    font-weight: 750 !important;
+    letter-spacing: -0.015em;
+}
+
+p,
+label,
+span,
+li {
+    color: #d8e0e8;
+}
+
+.muted,
+.subtitle,
+.description,
+.helper-text,
+small {
+    color: #8fa0b2 !important;
+}
+
+
+/* ---------- SUPPORTSENSE BLUE ---------- */
+
+a,
+.link,
+.intent,
+.predicted-intent,
+.intent-value,
+.model-value,
+.primary-value,
+.metric-value {
+    color: #2388ff !important;
+}
+
+.brand-title,
+.logo-title {
+    color: #f5f7fa !important;
+    font-weight: 800 !important;
+}
+
+
+/* ---------- NAVIGATION ---------- */
+
+.main-nav,
+.navbar,
+.navigation,
+nav {
+    background: #0b1016 !important;
+    border-color: #26313d !important;
+}
+
+.main-nav a,
+.navbar a,
+.navigation a {
+    color: #cbd5df !important;
+    font-weight: 650 !important;
+}
+
+.main-nav a:hover,
+.navbar a:hover,
+.navigation a:hover {
+    color: #ffffff !important;
+}
+
+.main-nav a.active,
+.navbar a.active,
+.navigation a.active,
+.nav-link.active {
+    background: #f2cc0c !important;
+    color: #07090c !important;
+    font-weight: 800 !important;
+    border-color: #f2cc0c !important;
+}
+
+
+/* ---------- ALL MAJOR PANELS ---------- */
+
+.card,
+.panel,
+.panel-card,
+.stat-card,
+.metric-card,
+.pipeline-card,
+.prediction-card,
+.ticket-card,
+.workflow-card,
+.result-card,
+.history-card,
+.review-card,
+.system-card,
+.page-card,
+.section-card {
+    background: #0d131a !important;
+    color: #f4f7fb !important;
+    border-color: #283440 !important;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+
+/* ---------- GOLD LEFT ACCENT ---------- */
+
+.ticket-card,
+.workflow-card,
+.result-card,
+.prediction-card {
+    border-left: 3px solid #f2cc0c !important;
+}
+
+
+/* ---------- PIPELINE ---------- */
+
+.pipeline-card {
+    background: #0d131a !important;
+}
+
+.pipeline-card h3,
+.pipeline-card .title,
+.pipeline-card strong {
+    color: #f5f7fa !important;
+    font-weight: 750 !important;
+}
+
+.pipeline-card .subtitle,
+.pipeline-card p {
+    color: #9aa8b7 !important;
+}
+
+.pipeline-arrow {
+    color: #f2cc0c !important;
+}
+
+
+/* ---------- KPI / METRICS ---------- */
+
+.metric-card,
+.stat-card {
+    background: #0b1118 !important;
+}
+
+.metric-card .value,
+.stat-card .value,
+.metric-value {
+    color: #2388ff !important;
+    font-size: 30px !important;
+    font-weight: 800 !important;
+}
+
+.metric-card .label,
+.stat-card .label {
+    color: #e5ebf1 !important;
+    font-weight: 700 !important;
+}
+
+
+/* ---------- PREDICTION / RESULT SURFACES ----------
+   Explicitly eliminate the white result blocks.
+   ------------------------------------------------------------ */
+
+.prediction-result,
+.prediction-result-card,
+.prediction-details,
+.prediction-detail,
+.prediction-summary,
+.result-panel,
+.result-summary,
+.result-details,
+.detail-grid,
+.detail-card,
+.prediction-meta,
+.prediction-fields,
+.action-details,
+.approval-details,
+.model-details,
+.risk-details {
+    background: #0b1118 !important;
+    color: #f4f7fb !important;
+    border-color: #283440 !important;
+}
+
+
+/* Any table/grid inside prediction results stays dark. */
+
+.prediction-result table,
+.prediction-details table,
+.result-panel table,
+.detail-grid,
+.detail-grid > *,
+.prediction-fields > * {
+    background: #0b1118 !important;
+    color: #e9eef4 !important;
+    border-color: #283440 !important;
+}
+
+
+/* ---------- TICKET INPUT ---------- */
+
+textarea,
+input,
+select {
+    background: #070b10 !important;
+    color: #f1f5f9 !important;
+    border: 1px solid #2a3744 !important;
+}
+
+textarea::placeholder,
+input::placeholder {
+    color: #718194 !important;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
+    background: #080d13 !important;
+    color: #ffffff !important;
+    border-color: #2388ff !important;
+    outline: 2px solid rgba(35, 136, 255, 0.16) !important;
+}
+
+
+/* ---------- BUTTONS ---------- */
+
+button {
+    font-weight: 750 !important;
+}
+
+.primary,
+.primary-button,
+.predict-button,
+button.primary {
+    background: #f2cc0c !important;
+    color: #07090c !important;
+    border-color: #f2cc0c !important;
+}
+
+.primary:hover,
+.primary-button:hover,
+.predict-button:hover,
+button.primary:hover {
+    background: #ffd91a !important;
+    color: #050608 !important;
+}
+
+.secondary,
+.secondary-button,
+.simulate-button,
+button.secondary {
+    background: #1478e8 !important;
+    color: #ffffff !important;
+    border-color: #1478e8 !important;
+}
+
+.secondary:hover,
+.secondary-button:hover,
+.simulate-button:hover,
+button.secondary:hover {
+    background: #2388ff !important;
+}
+
+
+/* ---------- STATUS / RISK ---------- */
+
+.status-success,
+.success,
+.status-dot.healthy,
+.risk-low {
+    color: #35d56f !important;
+}
+
+.risk-medium,
+.status-warning,
+.warning {
+    color: #f5a524 !important;
+}
+
+.risk-high,
+.status-danger,
+.danger {
+    color: #ef5b5b !important;
+}
+
+
+/* ---------- LIVE PREDICTION ROWS ---------- */
+
+.prediction-ticket,
+.prediction-title,
+.ticket-title {
+    color: #f5f7fa !important;
+    font-size: 17px !important;
+    font-weight: 750 !important;
+}
+
+.prediction-card .label,
+.prediction-card dt,
+.prediction-card .field-label {
+    color: #2388ff !important;
+    font-weight: 750 !important;
+}
+
+.prediction-card .field-value,
+.prediction-card dd {
+    color: #e8edf3 !important;
+    font-weight: 650 !important;
+}
+
+
+/* ---------- BADGES ---------- */
+
+.badge,
+.status-badge,
+.live-badge {
+    background: #101820 !important;
+    color: #35d56f !important;
+    border-color: #263642 !important;
+    font-weight: 800 !important;
+}
+
+.manual-badge {
+    background: rgba(35, 136, 255, 0.14) !important;
+    color: #2388ff !important;
+}
+
+
+/* ---------- EMPTY / SYSTEM STATES ---------- */
+
+.empty-state {
+    background: #0b1118 !important;
+    color: #9aa8b7 !important;
+    border-color: #283440 !important;
+}
+
+.empty-state strong {
+    color: #f4f7fb !important;
+}
+
+
+/* ---------- TABLES ---------- */
+
+table {
+    background: #0b1118 !important;
+    color: #e8edf3 !important;
+}
+
+thead,
+th {
+    background: #0f161e !important;
+    color: #9eb0c2 !important;
+    border-color: #283440 !important;
+}
+
+td {
+    background: #0b1118 !important;
+    color: #dfe6ed !important;
+    border-color: #202c37 !important;
+}
+
+tr:hover td {
+    background: #111a23 !important;
+}
+
+
+/* ---------- SUCCESS / ALERT PANELS ---------- */
+
+.success-message,
+.success-alert,
+.alert-success {
+    background: rgba(30, 180, 100, 0.10) !important;
+    color: #45dc7b !important;
+    border-color: rgba(53, 213, 111, 0.35) !important;
+}
+
+.warning-message,
+.warning-alert,
+.alert-warning {
+    background: rgba(245, 165, 36, 0.10) !important;
+    color: #f5b33e !important;
+    border-color: rgba(245, 165, 36, 0.35) !important;
+}
+
+.error-message,
+.error-alert,
+.alert-error {
+    background: rgba(239, 91, 91, 0.10) !important;
+    color: #ff7373 !important;
+    border-color: rgba(239, 91, 91, 0.35) !important;
+}
+
+
+/* ---------- FOOTER ---------- */
+
+footer {
+    background: transparent !important;
+    color: #8fa0b2 !important;
+}
+
+
+/* ---------- SCROLLBARS ---------- */
+
+* {
+    scrollbar-color: #354250 #070b10;
+}
+
+*::-webkit-scrollbar-track {
+    background: #070b10 !important;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #354250 !important;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #4b5d6e !important;
+}
+
+
+/* ---------- SLIGHTLY LARGER, BOLDER UI ---------- */
+
+button,
+.main-nav a,
+.navbar a,
+label {
+    font-size: 14px !important;
+}
+
+.card h3,
+.panel h3,
+.workflow-card h3,
+.result-card h3 {
+    font-size: 18px !important;
+    font-weight: 800 !important;
+}
+
+.section-heading h2,
+.page-section h2 {
+    font-size: 22px !important;
+}
+
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 900px) {
+    .app-shell {
+        width: min(var(--max-width), calc(100% - 24px));
+    }
+
+    .main-nav {
+        overflow-x: auto;
+    }
+}
+
+/* ============================================================
+   FINAL GRAFANA-STYLE CONTRAST PASS
+   Visual-only. No functionality changes.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   GLOBAL SURFACE / TEXT
+   ------------------------------------------------------------ */
+
+body,
+.app-shell,
+.tab-panel {
+    background: #05090d !important;
+    color: #f4f7fb !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+strong,
+b {
+    color: #f4f7fb !important;
+}
+
+p,
+small {
+    color: #b7c4d1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   PREDICTION CARDS
+   ------------------------------------------------------------ */
+
+.prediction-card,
+.history-item,
+.history-card {
+    background: #0b1118 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+/* Ticket text */
+.prediction-ticket,
+.history-ticket,
+.history-item h3,
+.prediction-card h4 {
+    color: #f4f7fb !important;
+    font-weight: 700 !important;
+    font-size: 17px !important;
+}
+
+/* Prediction metadata grid */
+.prediction-card-grid,
+.prediction-card-grid > div,
+.detail-grid,
+.detail-grid > *,
+.prediction-fields > * {
+    background: #080d13 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+/* Metadata labels = SupportSense blue */
+.prediction-card-grid span,
+.prediction-card .label,
+.prediction-card dt,
+.prediction-card .field-label,
+.history-details span,
+.prediction-label,
+.model-info dt {
+    color: #2f8cff !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em;
+}
+
+/* Metadata values = bright white */
+.prediction-card-grid strong,
+.prediction-card .field-value,
+.prediction-card dd,
+.history-details strong,
+.prediction-value,
+.model-info dd {
+    color: #f4f7fb !important;
+    font-weight: 700 !important;
+}
+
+/* Intent values = blue */
+.prediction-card-grid > div:nth-child(1) strong,
+.intent,
+.predicted-intent,
+.intent-value,
+.result-intent strong {
+    color: #2f8cff !important;
+}
+
+/* Model READY = green */
+.prediction-card-grid > div:nth-child(4) strong,
+.model-value,
+#model-status,
+#live-model-status,
+#system-model-status {
+    color: #35d46f !important;
+    font-weight: 800 !important;
+}
+
+/* Approval */
+.prediction-card-grid > div:nth-child(3) strong {
+    color: #f4f7fb !important;
+}
+
+/* Risk colours */
+.risk-low {
+    color: #35d46f !important;
+}
+
+.risk-medium {
+    color: #f5b82e !important;
+}
+
+.risk-high {
+    color: #ef5b5b !important;
+}
+
+
+/* ------------------------------------------------------------
+   LIVE / MANUAL / HISTORY STATUS
+   ------------------------------------------------------------ */
+
+.prediction-source,
+.prediction-time,
+.history-time {
+    color: #9fb0c0 !important;
+}
+
+.prediction-source strong,
+.prediction-source span {
+    color: #2f8cff !important;
+}
+
+.status-dot.healthy,
+.status-dot.online {
+    background: #35d46f !important;
+    color: #35d46f !important;
+}
+
+
+/* ------------------------------------------------------------
+   MANUAL PREDICTION RESULT
+   ------------------------------------------------------------ */
+
+.result-intent,
+.prediction,
+.prediction-result,
+.prediction-result-card {
+    background: #080d13 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+.result-intent span,
+.prediction-label {
+    color: #2f8cff !important;
+}
+
+.result-intent strong {
+    color: #2f8cff !important;
+    font-weight: 800 !important;
+}
+
+.prediction strong,
+.prediction-value {
+    color: #f4f7fb !important;
+}
+
+
+/* ------------------------------------------------------------
+   SYSTEM PAGE
+   ------------------------------------------------------------ */
+
+.system-card,
+.system-card-content {
+    background: #0b1118 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+.system-card-content strong {
+    color: #f4f7fb !important;
+    font-weight: 700 !important;
+}
+
+.system-card-content span {
+    color: #2f8cff !important;
+}
+
+.system-card-content span::before {
+    color: #35d46f !important;
+}
+
+.system-card-content a {
+    color: #2f8cff !important;
+    font-weight: 700 !important;
+}
+
+.system-card-content a:hover {
+    color: #55a8ff !important;
+}
+
+/* Dark icon containers */
+.system-card-visual {
+    background: #080d13 !important;
+    color: #2f8cff !important;
+    border-color: #263442 !important;
+}
+
+
+/* ------------------------------------------------------------
+   HISTORY FILTERS / CONTROLS
+   ------------------------------------------------------------ */
+
+.history-controls,
+.history-filters {
+    background: #0b1118 !important;
+    border-color: #263442 !important;
+}
+
+.history-controls button,
+.history-filters .filter-button {
+    background: #0b1118 !important;
+    color: #dce6ef !important;
+    border-color: #263442 !important;
+}
+
+.history-controls button:hover,
+.history-controls button.active,
+.history-filters .filter-button:hover,
+.history-filters .filter-button.active {
+    background: #f2cc0c !important;
+    color: #05090d !important;
+    border-color: #f2cc0c !important;
+}
+
+
+/* ------------------------------------------------------------
+   TABLES / DETAIL SURFACES
+   ------------------------------------------------------------ */
+
+table,
+thead,
+tbody,
+tr,
+td,
+th {
+    background: #080d13 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+th {
+    color: #2f8cff !important;
+    font-weight: 800 !important;
+}
+
+td {
+    color: #f4f7fb !important;
+}
+
+
+/* ------------------------------------------------------------
+   FORM CONTROLS
+   ------------------------------------------------------------ */
+
+input,
+textarea,
+select {
+    background: #080d13 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #738497 !important;
+}
+
+label {
+    color: #2f8cff !important;
+    font-weight: 700 !important;
+}
+
+
+/* ------------------------------------------------------------
+   SUCCESS / WARNING / ERROR
+   ------------------------------------------------------------ */
+
+.action-result.success,
+.success,
+.alert-success {
+    background: rgba(53, 212, 111, 0.10) !important;
+    color: #35d46f !important;
+    border-color: rgba(53, 212, 111, 0.45) !important;
+}
+
+.action-result.warning,
+.warning,
+.alert-warning {
+    background: rgba(245, 184, 46, 0.10) !important;
+    color: #f5b82e !important;
+    border-color: rgba(245, 184, 46, 0.45) !important;
+}
+
+
+/* ------------------------------------------------------------
+   GOLD SUPPORTSENSE ACCENTS
+   ------------------------------------------------------------ */
+
+.prediction-card,
+.history-item,
+.system-card {
+    border-left-color: #f2cc0c !important;
+}
+
+/* ============================================================
+   SUPPORTSENSE FINAL DARK OBSERVABILITY OVERRIDES
+   ------------------------------------------------------------
+   Final visual-only correction layer.
+
+   Goals:
+   - eliminate legacy white surfaces
+   - strong readable white text
+   - SupportSense blue for information/technology
+   - yellow for active navigation and attention
+   - green for healthy/ready states
+   - orange for medium risk
+   - red for high risk
+   - preserve all existing application behavior
+   ============================================================ */
+
+:root {
+    --ss-black: #05090d;
+    --ss-bg: #080d12;
+    --ss-panel: #0d141b;
+    --ss-panel-2: #101820;
+    --ss-panel-3: #131d26;
+
+    --ss-border: #263441;
+    --ss-border-bright: #334554;
+
+    --ss-white: #f5f7fa;
+    --ss-text: #e8edf3;
+    --ss-muted: #9aabba;
+
+    --ss-blue: #1f78ff;
+    --ss-blue-bright: #2f8cff;
+    --ss-blue-soft: rgba(31, 120, 255, 0.14);
+
+    --ss-yellow: #f2cc0c;
+    --ss-yellow-soft: rgba(242, 204, 12, 0.12);
+
+    --ss-green: #32d46b;
+    --ss-green-soft: rgba(50, 212, 107, 0.12);
+
+    --ss-orange: #f5a524;
+    --ss-orange-soft: rgba(245, 165, 36, 0.12);
+
+    --ss-red: #ef5350;
+    --ss-red-soft: rgba(239, 83, 80, 0.12);
+}
+
+
+/* ============================================================
+   GLOBAL SURFACES
+   ============================================================ */
+
+html,
+body {
+    background: var(--ss-black) !important;
+    color: var(--ss-text) !important;
+}
+
+body {
+    font-size: 14px;
+}
+
+.app-shell {
+    background: transparent !important;
+}
+
+main,
+.main-content,
+.page-content,
+.tab-panel {
+    background: transparent !important;
+    color: var(--ss-text) !important;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.topbar {
+    background: var(--ss-panel) !important;
+    border-color: var(--ss-border) !important;
+    color: var(--ss-text) !important;
+}
+
+.brand h1 {
+    color: var(--ss-white) !important;
+    font-weight: 800 !important;
+}
+
+.brand p,
+.brand span {
+    color: var(--ss-muted) !important;
+}
+
+.system-state {
+    background: var(--ss-panel-2) !important;
+    border-color: var(--ss-border) !important;
+}
+
+.system-state strong {
+    color: var(--ss-white) !important;
+}
+
+.system-state span {
+    color: var(--ss-muted) !important;
+}
+
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+
+.main-nav {
+    background: var(--ss-panel) !important;
+    border-color: var(--ss-border) !important;
+}
+
+.nav-tab {
+    color: var(--ss-text) !important;
+    font-weight: 650 !important;
+}
+
+.nav-tab:hover {
+    color: var(--ss-white) !important;
+    background: var(--ss-blue-soft) !important;
+}
+
+.nav-tab.active {
+    background: var(--ss-yellow) !important;
+    color: #050505 !important;
+    border-color: var(--ss-yellow) !important;
+    font-weight: 800 !important;
+    box-shadow:
+        0 0 18px rgba(242, 204, 12, 0.16);
+}
+
+
+/* ============================================================
+   PAGE HEADINGS
+   ============================================================ */
+
+.page-section h2,
+.section-heading h2,
+main h1,
+main h2 {
+    color: var(--ss-white) !important;
+    font-weight: 800 !important;
+}
+
+.page-section p,
+.section-heading p {
+    color: var(--ss-muted) !important;
+}
+
+.eyebrow,
+.section-label,
+.section-kicker {
+    color: var(--ss-yellow) !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em;
+}
+
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.action-button,
+.primary-button {
+    background: var(--ss-yellow) !important;
+    color: #050505 !important;
+    border-color: var(--ss-yellow) !important;
+    font-weight: 800 !important;
+}
+
+.action-button:hover,
+.primary-button:hover {
+    background: #ffd91a !important;
+    color: #050505 !important;
+}
+
+.secondary-button,
+.history-button {
+    background: var(--ss-blue) !important;
+    color: var(--ss-white) !important;
+    border-color: var(--ss-blue) !important;
+    font-weight: 750 !important;
+}
+
+.secondary-button:hover,
+.history-button:hover {
+    background: var(--ss-blue-bright) !important;
+}
+
+
+/* ============================================================
+   PIPELINE
+   ============================================================ */
+
+.pipeline-strip {
+    background: var(--ss-panel) !important;
+    border-color: var(--ss-border) !important;
+}
+
+.pipeline-step {
+    background: var(--ss-panel) !important;
+    color: var(--ss-text) !important;
+}
+
+.pipeline-step strong {
+    color: var(--ss-white) !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+}
+
+.pipeline-copy span,
+.pipeline-copy small {
+    color: var(--ss-muted) !important;
+}
+
+.pipeline-arrow {
+    color: var(--ss-yellow) !important;
+    font-weight: 900 !important;
+}
+
+
+/* ============================================================
+   KPI CARDS
+   ============================================================ */
+
+.kpi-card {
+    background: var(--ss-panel) !important;
+    border-color: var(--ss-border) !important;
+    color: var(--ss-text) !important;
+}
+
+.kpi-card strong {
+    color: var(--ss-blue) !important;
+    font-weight: 850 !important;
+}
+
+.kpi-card .kpi-title,
+.kpi-card h3,
+.kpi-card strong + span {
+    color: var(--ss-white) !important;
+    font-weight: 750 !important;
+}
+
+.kpi-meta {
+    color: var(--ss-muted) !important;
+}
+
+.kpi-card::after {
+    background: var(--ss-yellow-soft) !important;
+}
+
+
+/* ============================================================
+   GENERIC CARDS
+   ============================================================ */
+
+.card,
+.panel,
+.workspace-card {
+    background: var(--ss-panel) !important;
+    border-color: var(--ss-border) !important;
+    color: var(--ss-text) !important;
+}
+
+.card h2,
+.card h3,
+.panel h2,
+.panel h3,
+.workspace-card h2,
+.workspace-card h3 {
+    color: var(--ss-white) !important;
+    font-weight: 800 !important;
+}
+
+
+/* ============================================================
+   LIVE / HISTORY / REVIEW CARDS
+   ============================================================ */
+
+.prediction-card,
+.history-item,
+.review-item {
+    background: var(--ss-panel) !important;
+    border-color: var(--ss-border) !important;
+    color: var(--ss-text) !important;
+}
+
+.prediction-card:hover,
+.history-item:hover,
+.review-item:hover {
+    background: var(--ss-panel-2) !important;
+    border-color: var(--ss-blue) !important;
+}
+
+.prediction-ticket {
+    color: var(--ss-white) !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+}
+
+.prediction-card-header {
+    color: var(--ss-muted) !important;
+}
+
+
+/* ============================================================
+   PREDICTION DETAIL GRID
+   ============================================================ */
+
+.prediction-card-grid,
+.prediction-card-grid > div,
+.result-grid,
+.result-grid > div {
+    background: var(--ss-panel-2) !important;
+    color: var(--ss-text) !important;
+    border-color: var(--ss-border) !important;
+}
+
+.prediction-card-grid strong,
+.result-grid strong {
+    color: var(--ss-white) !important;
+    font-weight: 800 !important;
+}
+
+.prediction-card-grid span,
+.result-grid span {
+    color: var(--ss-muted) !important;
+}
+
+
+/* ============================================================
+   INTENT / AI RESULT
+   ============================================================ */
+
+.result-intent {
+    background: var(--ss-panel-2) !important;
+    border-color: var(--ss-border) !important;
+    color: var(--ss-text) !important;
+}
+
+.result-intent strong,
+#predicted-intent {
+    color: var(--ss-blue-bright) !important;
+    font-weight: 850 !important;
+}
+
+
+/* ============================================================
+   MANUAL PREDICTION INPUT
+   ============================================================ */
+
+.ticket-input,
+input,
+select,
+textarea {
+    background: var(--ss-black) !important;
+    color: var(--ss-white) !important;
+    border-color: var(--ss-border-bright) !important;
+}
+
+.ticket-input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--ss-blue) !important;
+    box-shadow: 0 0 0 2px var(--ss-blue-soft) !important;
+}
+
+.ticket-input::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: #718294 !important;
+}
+
+
+/* ============================================================
+   FORM LABELS
+   ============================================================ */
+
+label,
+.form-label,
+.result-label,
+.prediction-label {
+    color: var(--ss-muted) !important;
+    font-weight: 700 !important;
+}
+
+
+/* ============================================================
+   RISK
+   ============================================================ */
+
+.risk-low {
+    color: var(--ss-green) !important;
+    font-weight: 850 !important;
+}
+
+.risk-medium {
+    color: var(--ss-orange) !important;
+    font-weight: 850 !important;
+}
+
+.risk-high {
+    color: var(--ss-red) !important;
+    font-weight: 850 !important;
+}
+
+
+/* ============================================================
+   STATUS
+   ============================================================ */
+
+.status-dot.healthy,
+.status-healthy,
+.status-ready {
+    color: var(--ss-green) !important;
+}
+
+.success,
+.success-message,
+.action-result.success,
+.feedback-result.success {
+    background: var(--ss-green-soft) !important;
+    color: var(--ss-green) !important;
+    border-color: rgba(50, 212, 107, 0.35) !important;
+}
+
+
+/* ============================================================
+   EMPTY / SYSTEM STATES
+   ============================================================ */
+
+.empty-state,
+.review-empty,
+.history-empty {
+    background: var(--ss-panel) !important;
+    color: var(--ss-muted) !important;
+    border-color: var(--ss-border) !important;
+}
+
+.empty-state strong,
+.review-empty strong,
+.history-empty strong {
+    color: var(--ss-white) !important;
+}
+
+
+/* ============================================================
+   HISTORY FILTERS
+   ============================================================ */
+
+.history-filters,
+.history-controls {
+    background: var(--ss-panel) !important;
+    border-color: var(--ss-border) !important;
+}
+
+.history-filters .filter-button,
+.history-controls button {
+    background: var(--ss-panel-2) !important;
+    color: var(--ss-text) !important;
+    border-color: var(--ss-border) !important;
+    font-weight: 700 !important;
+}
+
+.history-filters .filter-button:hover,
+.history-controls button:hover {
+    background: var(--ss-blue-soft) !important;
+    color: var(--ss-white) !important;
+}
+
+.history-filters .filter-button.active {
+    background: var(--ss-yellow) !important;
+    color: #050505 !important;
+    border-color: var(--ss-yellow) !important;
+}
+
+
+/* ============================================================
+   SYSTEM CARDS
+   ============================================================ */
+
+.system-card {
+    background: var(--ss-panel) !important;
+    border-color: var(--ss-border) !important;
+    color: var(--ss-text) !important;
+}
+
+.system-card:hover {
+    background: var(--ss-panel-2) !important;
+    border-color: var(--ss-blue) !important;
+}
+
+.system-card h3,
+.system-card strong {
+    color: var(--ss-white) !important;
+    font-weight: 800 !important;
+}
+
+.system-card p,
+.system-card span {
+    color: var(--ss-muted) !important;
+}
+
+
+/* ============================================================
+   TECHNOLOGY VISUALS
+   ============================================================ */
+
+.system-card-visual,
+.pipeline-visual {
+    background: var(--ss-black) !important;
+    border-color: var(--ss-border-bright) !important;
+}
+
+.system-card-visual.kafka,
+.system-card-visual.spark,
+.system-card-visual.model,
+.system-card-visual.prometheus,
+.system-card-visual.grafana,
+.system-card-visual.airflow,
+.system-card-visual.mlflow {
+    background: var(--ss-black) !important;
+    color: var(--ss-blue) !important;
+}
+
+
+/* ============================================================
+   LINKS
+   ============================================================ */
+
+a {
+    color: var(--ss-blue-bright) !important;
+}
+
+a:hover {
+    color: #66a6ff !important;
+}
+
+
+/* ============================================================
+   TABLES
+   ============================================================ */
+
+table {
+    background: var(--ss-panel) !important;
+    color: var(--ss-text) !important;
+}
+
+th {
+    background: var(--ss-panel-2) !important;
+    color: var(--ss-blue-bright) !important;
+    border-color: var(--ss-border) !important;
+    font-weight: 800 !important;
+}
+
+td {
+    background: var(--ss-panel) !important;
+    color: var(--ss-text) !important;
+    border-color: var(--ss-border) !important;
+}
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+footer {
+    color: var(--ss-muted) !important;
+}
+
+/* ============================================================
+   TECHNOLOGY LOGO SIZING
+   Keep official technology logos contained inside system cards.
+   Visual-only; no application behavior changes.
+   ============================================================ */
+
+.system-card-visual {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+}
+
+.system-card-visual img {
+    display: block !important;
+
+    width: auto !important;
+    height: auto !important;
+
+    max-width: 34px !important;
+    max-height: 34px !important;
+
+    object-fit: contain !important;
+    object-position: center !important;
+
+    flex-shrink: 0 !important;
+}
+
+/* Wordmark-style logos need slightly more horizontal room
+   while remaining safely inside the visual container. */
+
+.system-card-visual.kafka img,
+.system-card-visual.spark img,
+.system-card-visual.mlflow img {
+    max-width: 38px !important;
+    max-height: 30px !important;
+}
+
+/* Icon-style observability logos */
+
+.system-card-visual.prometheus img,
+.system-card-visual.grafana img,
+.system-card-visual.airflow img {
+    width: 32px !important;
+    height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+}
+
+/* Keep the card itself from allowing oversized visual content
+   to affect the surrounding layout. */
+
+.system-card {
+    overflow: hidden !important;
+}
+
+.system-card-visual + .system-card-content {
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+.system-card-content strong,
+.system-card-content span,
+.system-card-content small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ============================================================
+   FINAL MANUAL PREDICTION RESULT FIX
+   Dark result grid — no white/light backgrounds.
+   ============================================================ */
+
+.result-card,
+.prediction-result,
+.prediction-result-card,
+.prediction-details,
+.prediction-detail,
+.prediction-summary,
+.result-panel,
+.result-summary,
+.result-details,
+.prediction-meta,
+.prediction-fields,
+.action-details,
+.approval-details,
+.model-details,
+.risk-details,
+.prediction-card-grid {
+    background: #080d13 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+/* Individual result cells */
+.prediction-card-grid > div,
+.prediction-fields > *,
+.result-grid > div,
+.result-details > div,
+.prediction-detail {
+    background: #080d13 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+/* Labels */
+.prediction-card-grid span,
+.prediction-card .label,
+.prediction-card dt,
+.prediction-card .field-label,
+.prediction-label,
+.result-label,
+.model-info dt {
+    color: #2f8cff !important;
+    font-weight: 800 !important;
+}
+
+/* Values */
+.prediction-card-grid strong,
+.prediction-card .field-value,
+.prediction-card dd,
+.prediction-value,
+.model-info dd {
+    color: #f4f7fb !important;
+    font-weight: 800 !important;
+}
+
+/* Intent */
+#predicted-intent,
+.prediction-card-grid > div:nth-child(1) strong,
+.intent,
+.predicted-intent,
+.intent-value,
+.result-intent strong {
+    color: #2f8cff !important;
+    font-weight: 850 !important;
+}
+
+/* Model READY */
+#model-status,
+#live-model-status,
+#system-model-status,
+.prediction-card-grid > div:nth-child(4) strong,
+.model-value {
+    color: #32d46b !important;
+    font-weight: 850 !important;
+}
+
+/* Risk */
+#risk-level,
+.risk-low {
+    color: #32d46b !important;
+    font-weight: 850 !important;
+}
+
+.risk-medium {
+    color: #f5b82e !important;
+    font-weight: 850 !important;
+}
+
+.risk-high {
+    color: #ef5b5b !important;
+    font-weight: 850 !important;
+}
+
+/* Approval */
+#approval-required,
+.prediction-card-grid > div:nth-child(3) strong {
+    color: #f4f7fb !important;
+    font-weight: 800 !important;
+}
+
+/* Action */
+#action-name {
+    color: #f4f7fb !important;
+    font-weight: 800 !important;
+}
+
+/* Remove any inherited light table/grid backgrounds */
+.result-card table,
+.result-card tbody,
+.result-card tr,
+.result-card td,
+.result-card th,
+.prediction-result table,
+.prediction-result tbody,
+.prediction-result tr,
+.prediction-result td,
+.prediction-result th {
+    background: #080d13 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+/* Manual result intent panel */
+.result-intent {
+    background: #080d13 !important;
+    color: #f4f7fb !important;
+    border-color: #263442 !important;
+}
+
+.result-intent span {
+    color: #2f8cff !important;
+    font-weight: 800 !important;
+}
+
+.result-intent strong {
+    color: #2f8cff !important;
+    font-weight: 850 !important;
+}
+
+/* ============================================================
+   MANUAL PREDICTION — DECISION GRID
+   Final dark-theme correction for Risk / Approval / Action / Model
+   ============================================================ */
+
+.decision-grid,
+.decision-grid > div,
+.decision-grid > *,
+.decision-item {
+    background: var(--ss-panel-2) !important;
+    color: var(--ss-text) !important;
+    border-color: var(--ss-border) !important;
+}
+
+.decision-grid span,
+.decision-item span {
+    color: var(--ss-blue-bright) !important;
+    font-weight: 700 !important;
+}
+
+.decision-grid strong,
+.decision-item strong {
+    color: var(--ss-white) !important;
+    font-weight: 800 !important;
+}
+
+/* Risk */
+.decision-grid .risk-low,
+.decision-item .risk-low {
+    color: var(--ss-green) !important;
+}
+
+.decision-grid .risk-medium,
+.decision-item .risk-medium {
+    color: var(--ss-orange) !important;
+}
+
+.decision-grid .risk-high,
+.decision-item .risk-high {
+    color: var(--ss-red) !important;
+}
+
+/* Model READY */
+.decision-grid #model-status,
+.decision-grid .model-value,
+.decision-item #model-status,
+.decision-item .model-value {
+    color: var(--ss-green) !important;
+}
+
+/* ============================================================
+   SYSTEM CARDS — IMPROVED TYPOGRAPHY
+   Increase technology/service card text without changing layout.
+   ============================================================ */
+
+.system-card-content {
+    min-width: 0 !important;
+}
+
+.system-card-content strong {
+    display: block !important;
+    color: var(--ss-white) !important;
+    font-size: 15px !important;
+    line-height: 1.25 !important;
+    font-weight: 800 !important;
+}
+
+.system-card-content span {
+    display: block !important;
+    color: var(--ss-text) !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    margin-top: 3px !important;
+}
+
+.system-card-content small {
+    display: block !important;
+    color: var(--ss-blue-bright) !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    font-weight: 700 !important;
+    margin-top: 4px !important;
+}
+
+.system-card-content strong + span {
+    color: var(--ss-muted) !important;
+}
+
+/* Healthy/ready status text remains green */
+.system-card-content span.status-healthy,
+.system-card-content span.status-ready,
+.system-card-content span[id$="-status"] {
+    color: var(--ss-green) !important;
+}
+
+/* Technology cards should remain compact and stable */
+.system-card {
+    overflow: hidden !important;
+}
+
+.system-card-visual {
+    flex-shrink: 0 !important;
+}
+
+/* ============================================================
+   FINAL UI POLISH — SYSTEM CARD SPACING
+   Keep horizontal and vertical gaps consistent between rows.
+   ============================================================ */
+
+.system-grid {
+    row-gap: 10px !important;
+    column-gap: 10px !important;
+}
+
+.system-card {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+
+/* ============================================================
+   FINAL UI POLISH — OBSERVABILITY PANEL
+   Give the panel the same visual separation as the system grid.
+   ============================================================ */
+
+.observability-card {
+    margin-top: 10px !important;
+}
+
+
+/* ============================================================
+   FINAL UI POLISH — PREDICTION HISTORY
+   History cards intentionally stack without vertical gaps.
+   ============================================================ */
+
+.history-item {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.history-item + .history-item {
+    margin-top: 0 !important;
+}
