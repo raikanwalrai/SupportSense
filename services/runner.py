@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import subprocess
 import time
@@ -385,8 +386,13 @@ def ray_experiments() -> dict[str, object]:
             detail=f"Experiment config not found: {config_path}",
         )
 
+    profile_name = os.environ.get("RAY_EXPERIMENT_PROFILE", "smoke")
+
     try:
-        results = run_ray_experiments(config_path)
+        results = run_ray_experiments(
+            config_path,
+            profile_name=profile_name,
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -401,6 +407,7 @@ def ray_experiments() -> dict[str, object]:
     return {
         "status": "success",
         "operation": "ray_experiments",
+        "profile": profile_name,
         "experiments": len(results),
         "results": results,
         "best": best_result,
