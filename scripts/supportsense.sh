@@ -113,6 +113,9 @@ Commands:
     stream
         Show Kafka and Spark streaming observability.
 
+    airflow
+        Show local SupportSense Airflow credentials.
+
     help
         Show this help message.
 
@@ -163,6 +166,11 @@ case "${1:-help}" in
 
     stream)
         exec "$LIB_DIR/stream-dev.sh"
+        ;;
+
+    airflow)
+        shift
+        exec "$LIB_DIR/airflow-dev.sh" "${1:-credentials}"
         ;;
 
     git)
